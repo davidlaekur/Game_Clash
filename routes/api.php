@@ -45,12 +45,14 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::get('/profile', [AuthController::class, 'userProfile']);
 
-    // rutas rest  
-    Route::apiResource('players', PlayerController::class);
-    Route::apiResource('roles', RoleController::class);
-    Route::apiResource('teams', TeamController::class);
-    Route::apiResource('actions', ActionController::class);
-    Route::apiResource('adventures', AdventureController::class);
+    // rutas rest — prefijo de nombre "api." para no chocar con las rutas
+    // resource de web.php (teams/players/actions comparten nombres autogenerados,
+    // lo que rompe `php artisan route:cache` en producción).
+    Route::apiResource('players', PlayerController::class)->names('api.players');
+    Route::apiResource('roles', RoleController::class)->names('api.roles');
+    Route::apiResource('teams', TeamController::class)->names('api.teams');
+    Route::apiResource('actions', ActionController::class)->names('api.actions');
+    Route::apiResource('adventures', AdventureController::class)->names('api.adventures');
 
 
 
