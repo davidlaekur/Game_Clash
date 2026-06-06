@@ -32,11 +32,14 @@ class DatabaseSeeder extends Seeder
                     NeedSeeder::class,          // Seed de dependencias entre inventos
                     AdventureSeeder::class,
                 ]);
-  
-                User::factory()->count(6)->create(); 
-                Invention::factory()->count(15)->create();
-                InventionStat::factory()->count(15)->create();
-                
-    }   
+
+        // Las factories (Faker) son datos de relleno de desarrollo y Faker no
+        // se instala en producción (--no-dev). Solo se ejecutan fuera de prod.
+        if (! app()->environment('production')) {
+            User::factory()->count(6)->create();
+            Invention::factory()->count(15)->create();
+            InventionStat::factory()->count(15)->create();
+        }
+    }
 
 }
