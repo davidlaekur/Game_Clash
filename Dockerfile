@@ -27,9 +27,11 @@ RUN npm run build
 # ---------- Stage 2: aplicación PHP (nginx + php-fpm) ----------
 FROM serversideup/php:8.3-fpm-nginx
 
-# Instalar la extensión MongoDB de PHP (root para pecl, luego volvemos a www-data)
+# Instalar la extensión MongoDB de PHP. El proyecto (mongodb/laravel-mongodb 5.1
+# y mongodb/mongodb 1.20) requiere ext-mongodb ^1.20, NO la rama 2.x. Fijamos la
+# última de la serie 1.x compatible.
 USER root
-RUN install-php-extensions mongodb
+RUN install-php-extensions mongodb-1.21.0
 USER www-data
 
 WORKDIR /var/www/html
