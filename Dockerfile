@@ -27,11 +27,12 @@ RUN npm run build
 # ---------- Stage 2: aplicación PHP (nginx + php-fpm) ----------
 FROM serversideup/php:8.3-fpm-nginx
 
-# Instalar la extensión MongoDB de PHP. El proyecto (mongodb/laravel-mongodb 5.1
-# y mongodb/mongodb 1.20) requiere ext-mongodb ^1.20, NO la rama 2.x. Fijamos la
-# última de la serie 1.x compatible.
+# Instalar la extensión MongoDB de PHP. La serie 1.x (ext-mongodb 1.21) tiene un
+# bug de handshake TLS con OpenSSL 3 contra Atlas (no negocia bien el SNI/cifrado
+# y Atlas rechaza con "tlsv1 alert internal error"). Usamos la rama 2.x, que lo
+# resuelve. Requiere actualizar los paquetes de Composer (ver más abajo).
 USER root
-RUN install-php-extensions mongodb-1.21.0
+RUN install-php-extensions mongodb
 USER www-data
 
 WORKDIR /var/www/html
@@ -39,7 +40,9 @@ WORKDIR /var/www/html
 # Copiamos el código de la aplicación (con permisos del usuario www-data)
 COPY --chown=www-data:www-data . .
 
-# Dependencias de PHP de producción
+# Dependencias de PHP de producción. El composer.lock ya está fijado a la rama
+# Mongo 2.x (mongodb/mongodb 2.3, laravel-mongodb 5.7), que usa ext-mongodb 2.x
+# y negocia bien el TLS con Atlas. Instalación determinista desde el lock.
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 # Assets ya compilados desde el stage de Node
