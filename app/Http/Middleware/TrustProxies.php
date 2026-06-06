@@ -10,9 +10,14 @@ class TrustProxies extends Middleware
     /**
      * The trusted proxies for this application.
      *
+     * En Railway (y otras PaaS) la app corre detrás de un proxy HTTPS cuya IP
+     * no es fija. Confiamos en todos los proxies para que Laravel detecte el
+     * header X-Forwarded-Proto=https y genere cookies/URLs seguras. Sin esto,
+     * la cookie de sesión no persiste y el login da error 419 (CSRF).
+     *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
      * The headers that should be used to detect proxies.
