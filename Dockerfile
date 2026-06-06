@@ -25,12 +25,14 @@ RUN npm run build
 
 
 # ---------- Stage 2: aplicación PHP (nginx + php-fpm) ----------
-FROM serversideup/php:8.3-fpm-nginx
+# IMPORTANTE: usamos el tag -bookworm (Debian 12, OpenSSL 3.0) en vez del tag
+# flotante 8.3-fpm-nginx (que pasó a Debian 13 trixie con OpenSSL 3.5.6).
+# OpenSSL 3.5 rompe el handshake TLS contra los clusters compartidos M0 de Atlas
+# ("tlsv1 alert internal error" / SSL alert 80), incluso con openssl s_client
+# directo. OpenSSL 3.0 (bookworm) negocia correctamente con Atlas M0.
+FROM serversideup/php:8.3-fpm-nginx-bookworm
 
-# Instalar la extensión MongoDB de PHP. La serie 1.x (ext-mongodb 1.21) tiene un
-# bug de handshake TLS con OpenSSL 3 contra Atlas (no negocia bien el SNI/cifrado
-# y Atlas rechaza con "tlsv1 alert internal error"). Usamos la rama 2.x, que lo
-# resuelve. Requiere actualizar los paquetes de Composer (ver más abajo).
+# Extensión MongoDB de PHP (rama 2.x, fijada en composer.lock).
 USER root
 RUN install-php-extensions mongodb
 USER www-data
