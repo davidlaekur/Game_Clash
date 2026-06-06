@@ -1,0 +1,440 @@
+@use "sass:color";
+@use "sass:math"; 
+
+
+/*******************************************************************/
+/* Animacion no realizada por mi, solo unos cambios para adaptarla */
+/*******************************************************************/
+
+$duration: 19s;
+
+html, body { height: 100%; width: 100%; }
+
+body {
+	text-align: center;
+	overflow: hidden;
+	opacity: 1;
+	background-color: lighten(black, 4%);
+}
+
+nav {
+    position: relative;
+    z-index: 1000;
+}
+
+.scene,
+.space { 
+	animation: fadeIn 3s 1 linear;
+}
+
+.hyperspace, .scene, .space {
+    pointer-events: none; 
+}
+
+// *
+// ---------- star blur ------------- //
+// *
+
+@for $i from 1 through 144 {
+	$d: $i * 2.5;
+	$r: random(4) * .005;
+	$p: random(6) * 10% + 100% - 20;
+	@keyframes star-blur-#{$i} {
+		0% { transform: rotate(#{$d}deg) perspective(3vh) 
+			rotateX(15deg) translateY(0) scaleY(.1); }
+		12% { transform: rotate(#{$d}deg) perspective(3vh) 
+				rotateX(15deg) translateY($p) scaleY(1); }
+		44% { transform: rotate(#{$d}deg) perspective(3vh) 
+			    rotateX(15deg) translateY(7vh) scaleY(1); }
+		46% { transform: rotate(#{$d}deg) perspective(2vh)
+			    rotateX(15deg) translateY(.5vh) scaleY(1); }
+		55% { transform: rotate(#{$d}deg) perspective(2vh)
+			rotateX(15deg) translateY($p) scaleY(.7); }
+		100% { transform: rotate(#{$d}deg) perspective(2vh) 
+			rotateX(15deg) translateY(7vh) scaleY(1); }
+	}
+}
+
+ 
+// *
+// ---------- stars ------------- //
+// *
+
+.star {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	border-radius: 50%;
+	background-color: white;
+	filter: blur(.1px);
+	@for $i from 1 through 144 {
+		&:nth-child(#{$i}) {
+			top: 50%;
+			left: 50%;
+			z-index: 9;
+			width: 2px;
+			height: 6vh + random(3) / 2;
+			border: 1px solid rgba(blue, random(2) * .05 + .3);
+			animation: star-blur-#{$i} $duration ease-in-out;
+			transform-origin: top center;
+			transform: rotate(#{$i * 2.5}deg) 
+								 perspective(10vh) 
+								 rotateX(15deg) 
+								 translateY(30vh + random(5));
+			@if random(4) == 4 {
+				display: none;
+			}
+		}
+	}
+}
+
+// *
+// ---------- bb unit ------------- //
+// *
+
+.bb-unit {
+	position: absolute;
+	height: 2.15vh; width: 2.5vh;
+	max-height: 11px; max-width: 13px;
+	box-shadow: inset 0 0 1px 1px rgba(0,0,0,0.5);
+	background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/bb-face.jpg');
+	background-size: cover;
+	background-position: center;
+	border-radius: 60% 60% 45% 45%;
+	top: 32.25%; left: 48.25%;
+	transform: rotate(-1deg);
+	animation: bb-swivel $duration ease-out 1;
+}
+
+@keyframes bb-swivel {
+	0% { background-position: 40% center; }
+	3% { background-position: 40% center; }
+	5% { background-position: 58% center; }
+	8% { background-position: 58% center; }
+	10% { background-position: 58% center; }
+	12% { background-position: 40% center; }
+	15% { background-position: 60% center; }
+	25% { background-position: 60% center; }
+	35% { background-position: 10% center; }
+	39% { background-position: 10% center; }
+	40% { background-position: 60% center; }
+	// <head shake>
+	52% { background-position: 37% center; }
+	53% { background-position: 63% center; }
+	54% { background-position: 39% center; }
+	55% { background-position: 60% center; }
+	56% { background-position: 36% center; }
+	57% { background-position: 62% center; }
+	// </head shake>
+	66% { background-position: 62% center; }
+	67% { background-position: 45% center; }
+	70% { background-position: 45% center; }
+	75% { background-position: 100% center; }
+	100% { background-position: 100% center; }
+}
+
+// *
+// -------- x-wing thrusters ---------- //
+// *
+
+.thruster-flicker {
+	opacity: 0.5;
+	width: 100%;
+	height: 100%;
+	animation: flicker 0.025s linear infinite;
+}
+
+@keyframes flicker {
+	0% { transform: scale(1); }
+	20% { transform: scale(1.07); }
+	30% { transform: scale(0.94); }
+	50% { transform: scale(1.05); }
+	70% { transform: scale(0.95); }
+	85% { transform: scale(1.05); }
+	100% { transform: scale(1); }
+}
+
+.thruster {
+	position: absolute;
+	border-radius: 50%;
+	height: 2.8vh; width: 2.8vh;
+	max-height: 13px; max-width: 13px;
+	background-color: white; 
+	box-shadow: 0 0 8px 3px red;
+	animation: thrusters $duration ease-out 1;
+	&.t1 { top: 42%; left: 35%; }
+	&.t2 { top: 41.5%; left: 64.5%; }
+	&.t3 { top: 80.5%; left: 63%; }
+	&.t4 { top: 81.5%; left: 36.5%; }
+}
+
+@keyframes thrusters {
+	0% { transform: scale(2.25); }
+	15% { transform: scale(0.8); }
+	30% { transform: scale(2.25); }
+	44% { transform: scale(0.95); }
+	52% { transform: scale(1.75); }
+	54% { transform: scale(0.9); }
+	62% { transform: scale(2.5); }
+	100% { transform: scale(0.8); }
+}
+
+// *
+// ---------- x-wing ------------- //
+// *
+
+.x-wing {
+	opacity: 1;
+	position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg) scale(0);
+	z-index: 9999;
+	height: 41vh; width: 80vh;
+	max-height: 205px; max-width: 400px;
+	background-size: cover;
+	background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/x-wing.png);
+	animation: flightplan $duration ease-in-out 1;
+}
+
+@keyframes flightplan {
+	0% {
+		transform: 
+			translate(-45%, 50%) 
+			rotate(20deg) 
+			scale(3);
+			opacity: 0;
+	}
+	2% { opacity: 1; }
+	15% {
+		transform: 
+			translate(-25%, -10%) 
+			rotate(-40deg) 
+			scale(0.5);
+	}
+	30% {
+	transform:
+		translate(-70%, 0%) 
+		rotate(28deg) 
+		scale(1);
+	}
+	47% {
+	transform: 
+		translate(-20%, -20%) 
+		rotate(-25deg) 
+		scale(0.75);		
+	}
+	53% {
+	transform: 
+		translate(-8%, -17%) 
+		rotate(-28deg) 
+		scale(1.11);			
+	}
+	90% {
+		transform: 
+			translate(-80%, -50%)  
+			rotate(25deg) 
+			scale(0);
+	}
+	90% {
+	transform: 
+			translate(-80%, -50%)
+			rotate(25deg) 
+			scale(0);
+	}
+}
+
+// *
+// ------ planet & x-wing wrapper --------- //
+// *
+
+.subspace {
+	z-index: 500;
+	width: 300px;
+	height: 300px;
+	position: absolute;
+	margin-top: -150px;
+	top: 50%;
+	margin-left: -150px;
+	left: 50%;
+}
+
+// *
+// --------------- planet ---------------- //
+// *
+
+.hosnian-prime {
+ position: absolute;
+ top: 50%;
+ left: 50%;
+ left: 0; right: 0;
+ margin: -35vh auto 0;
+ z-index: 8;
+ background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/hosnian.jpg');
+  width: 75vh; max-width: 368px;
+  height: 75vh; max-height: 368px;
+  box-shadow:
+		inset 175px 0 80px 3px rgba(0,0,0,.6),
+		inset 75px 0 80px 3px rgba(0,0,0,.2),
+		inset -2px 0 50px 15px rgba(255,255,255,.5),
+		inset -2px 0 15px 2px rgba(255,255,255,1),
+		0 0 55px 10px rgba(blue, 0.45),
+		3px 0 10px 2px rgba(blue, 0.75),
+		-3px 0 10px 2px rgba(color.adjust(blue, $saturation: -75%), 0.75);
+  background-size: 602px;
+  border-radius: 50%;
+  position: relative;
+	transform: scale(1) translateY(0px);
+  animation-name: rotate, planet-zoom;
+  animation-duration: 80s, $duration;
+  animation-iteration-count: infinite, 1;
+  animation-timing-function: linear, ease-out;
+}
+
+@keyframes rotate {
+  0% { background-position: 0px; }
+  100% { background-position: 602px; }
+}
+
+@keyframes planet-zoom {
+	0% { transform: scale(.01) translateY(0px); opacity: 0; }
+	50% { transform: scale(.2) translateY(0px); opacity: 0; }
+	51% { opacity: 1; }
+	52% { transform: scale(.8) translateY(0px); }
+	100% { transform: scale(1) translateY(0px); }
+}
+
+// *
+// ----- space positioning / zoom ------ //
+// *
+
+.space {
+	display: absolute;
+	top:0;right:0;bottom:0;left:0;
+	width: 100%;height:100%;
+	background-position: 50% 50%;
+	animation: space-zoom $duration 1 ease;
+	opacity: 0;
+}
+
+@keyframes space-zoom {
+	0% { opacity: 0; }
+	4% { opacity: 0; }
+	5% { opacity: 1; }
+	11% { opacity: 1; }
+	12% { opacity: 0; }
+	47% { opacity: 0; }
+	48% { opacity: 1; }
+	49% { opacity: 1; }
+	53% { opacity: 0; }
+	100% { opacity: 0; }
+}
+
+// *
+// ---------- hyperspace ------------- //
+// *
+
+
+.scene{
+  display: inline-block;
+  vertical-align: middle;
+  perspective: 5px;
+  perspective-origin: 50% 50%;
+  position: relative;
+}
+
+.wrap{
+  position: absolute;
+  width: 1000px;
+  height: 1000px;
+  left: -500px;
+  top: -500px;
+  transform-style: preserve-3d;
+  animation: move 12s infinite linear;
+  animation-fill-mode: forwards;
+}
+
+.wrap:nth-child(2){
+  animation: move 12s infinite linear;
+  animation-delay: 6s;
+}
+
+.wall {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  opacity: 0;
+  animation: fade 12s infinite linear;
+  animation-delay: 0;
+}
+
+.wrap:nth-child(2) .wall {
+  animation-delay: 6s;
+}
+
+.wall-right {
+  transform: rotateY(90deg) translateZ(500px);
+}
+
+.wall-left {
+  transform: rotateY(-90deg) translateZ(500px);
+}
+
+.wall-top {
+  transform: rotateX(90deg) translateZ(500px);
+}
+
+.wall-bottom {
+  transform: rotateX(-90deg) translateZ(500px);
+}
+
+.wall-back {
+  transform: rotateX(180deg) translateZ(500px);
+}
+
+@keyframes move {
+  0%{
+    transform: translateZ(-500px) rotate(0deg);
+  }
+  100%{
+    transform: translateZ(500px) rotate(0deg);
+  }
+}
+
+@keyframes fade {
+  0%{ opacity: 0; }
+  25% { opacity: 1; }  
+  75% { opacity: 1; }
+  100%{ opacity: 0; }
+}
+
+.wall {
+  background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/Hyperspacetunnel.png');
+  background-size: cover;
+}
+
+.hyperspace {
+	width: 100%; height: 100%;
+	position: absolute;
+	transform-origin: 50% 50%;
+	animation: hyperRotate 25s infinite linear;
+}
+
+@keyframes hyperRotate {
+	0% { transform: rotateZ(0deg); }
+	100% { transform: rotateZ(360deg); }
+}
+
+.scene {
+	animation: exitHyperspace $duration ease;
+	opacity: 0;
+}
+
+@keyframes exitHyperspace {
+	0% { opacity: 0; transform: translateY(50vh) scale(.25); }
+	7% { opacity: 0; transform: translateY(50vh) scale(.25); }
+	10% { opacity: 1; transform: translateY(50vh) scale(3); }
+	47% { opacity: 1; transform: translateY(50vh) scale(3); }
+	48% { opacity: 0; transform: translateY(50vh) scale(.25); }
+	100% { transform: translateY(50vh) scale(.25); }
+}

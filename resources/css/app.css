@@ -1,0 +1,275 @@
+@import "bootstrap/dist/css/bootstrap.min.css";
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+/* añado un emoji a cada rol */
+
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: rosybrown;
+}
+.role-icon.explorer::before {
+    content: "⚔️ ";
+    margin-right: 4px;
+}
+
+.role-icon.collector::before {
+    content: "🎒 ";
+    margin-right: 4px;
+}
+
+.role-icon.strategist::before {
+    content: "🛡️ ";
+    margin-right: 4px;
+}
+
+.role-icon.inventor::before {
+    content: "💡 ";
+    margin-right: 4px;
+}
+
+.role-icon {
+    font-weight: bold;
+    color: #ffc107;
+}
+
+/* añado un emoji a cada equipo */
+
+.team-name {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.separator {
+    margin: 0 8px;
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+.team-name.team-a::before {
+    content: "⚕︎";
+    margin-right: 4px;
+}
+
+.team-name.team-b::before {
+    content: "✠";
+    margin-right: 4px;
+}
+
+.team-name.team-c::before {
+    content: "☫";
+    margin-right: 4px;
+}
+
+.team-name.team-d::before {
+    content: "⚝";
+    margin-right: 4px;
+}
+
+.team-name {
+    font-weight: bold;
+    color: #28a745;
+}
+
+.font-timer {
+    font-size: 1.6em;
+    font-weight: bold;
+}
+
+/* animacion cuando ganamos batalla */
+@keyframes battle-win {
+    0% {
+        transform: scale(1);
+        background-color: #28a745;
+        color: white;
+    }
+    50% {
+        transform: scale(1.1);
+        background-color: #218838;
+        color: #fff;
+    }
+    100% {
+        transform: scale(1);
+        background-color: #28a745;
+        color: white;
+    }
+}
+
+/* animacion cuando perdemos batalla  */
+@keyframes battle-lose {
+    0% {
+        transform: scale(1);
+        background-color: #5f9ea0;
+        color: white;
+    }
+    50% {
+        transform: scale(1.1);
+        background-color: #5f9ea0;
+        color: #fff;
+    }
+    100% {
+        transform: scale(1);
+        background-color: #5f9ea0;
+        color: white;
+    }
+}
+
+/* animacion  */
+.battle-won {
+    animation: battle-win 1.5s ease-in-out infinite alternate;
+}
+
+.battle-lost {
+    animation: battle-lose 1.5s ease-in-out infinite alternate;
+}
+
+.bg-soft-blue {
+    background-color: #dbeafe;
+}
+
+
+
+/*_______________________________________________________________*/
+
+
+/* aventura */
+
+.form-advenrure{
+    background-color: #cbdadd;
+}
+
+.btn-adventure {
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Orbitron", sans-serif;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 18px;
+    background-color: #433727;
+    color: #8b781a;
+    padding: 12px 20px;
+    position: relative;
+    text-shadow: -1px -1px rgba(0, 0, 0, 0.6);
+    box-shadow: 3px 3px 0 #32261d, 2px 2px 0 #32261d, 1px 1px 0 #32261d;
+    transition: all 0.2s ease-in-out;
+    text-decoration: none;
+}
+
+.btn-adventure:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #32261d, 0px 0px 0 #32261d;
+}
+
+.btn-adventure::before {
+    position: relative;
+    background-color: #890012;
+    content: "";
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: block;
+    border: 2px solid #59564f;
+    margin-right: 7px;
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3),
+        inset 0 0 2px 2px rgba(0, 0, 0, 0.3);
+    animation: pulse 1.4s infinite;
+}
+
+.bolt {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: #d1d1d1;
+    position: absolute;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.bolt::before {
+    content: "";
+    position: absolute;
+    display: block;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333;
+    height: 100%;
+    width: 1px;
+}
+
+.bolt.lt {
+    top: 5px;
+    left: 5px;
+    transform: rotate(90deg);
+}
+.bolt.rt {
+    top: 5px;
+    right: 5px;
+    transform: rotate(-45deg);
+}
+.bolt.lb {
+    bottom: 5px;
+    left: 5px;
+    transform: rotate(45deg);
+}
+.bolt.rb {
+    bottom: 5px;
+    right: 5px;
+    transform: rotate(-90deg);
+}
+
+@keyframes pulse {
+    0% {
+        background-color: #1d571a;
+    }
+    50% {
+        background-color: #26892e;
+    }
+    100% {
+        background-color: #1d571a;
+    }
+}
+
+/* h3 tipo  fornite para premios */
+
+
+.reward-title, .earned-title {
+    font-family: 'Luckiest Guy', cursive;
+    font-size: 24px;
+    color: white;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 10px auto;
+    box-shadow: 0px 4px 0px #000;
+}
+
+
+.reward-title {
+    background: linear-gradient(45deg, #ffcc00, #ff9900);
+    border: 2px solid #d88c00;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+
+.earned-title {
+    background: linear-gradient(45deg, #0099ff, #0055ff);
+    border: 2px solid #0078a8;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+
+.reward .card-body img {
+    width: 120px;
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
+

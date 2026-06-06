@@ -1,0 +1,34 @@
+# Dependencias y artefactos que se regeneran dentro del build
+/vendor
+/node_modules
+/public/build
+/public/hot
+/public/storage
+
+# Git y metadatos
+.git
+.gitignore
+.gitattributes
+
+# Entornos locales y secretos — NUNCA al contexto de build
+.env
+.env.testing
+.env.example
+auth.json
+
+# Cache de tests / herramientas
+/.phpunit.cache
+.phpunit.result.cache
+/storage/*.key
+/storage/logs/*.log
+
+# Editores y SO
+.DS_Store
+Thumbs.db
+/.idea
+/.vscode
+/.fleet
+
+# Despliegue (no necesario dentro de la imagen)
+docs
+README.md
