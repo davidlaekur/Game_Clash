@@ -33,13 +33,11 @@ class DatabaseSeeder extends Seeder
                     AdventureSeeder::class,
                 ]);
 
-        // Las factories (Faker) son datos de relleno de desarrollo y Faker no
-        // se instala en producción (--no-dev). Solo se ejecutan fuera de prod.
-        if (! app()->environment('production')) {
-            User::factory()->count(6)->create();
-            Invention::factory()->count(15)->create();
-            InventionStat::factory()->count(15)->create();
-        }
+        // Datos de relleno (jugadores e inventos) generados con Faker. Faker
+        // está en "require" (no require-dev) para que funcione también en prod.
+        User::factory()->count(6)->create();
+        Invention::factory()->count(15)->create();
+        InventionStat::factory()->count(15)->create();
     }
 
 }
