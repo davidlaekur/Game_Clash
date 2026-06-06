@@ -1,11 +1,13 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 #
 # Se ejecuta automáticamente al arrancar el contenedor (mecanismo de
 # entrypoint.d de serversideup/php). Cachea config, rutas y vistas de Laravel
 # para producción. Si algo crítico falla, queda registrado en los logs de
 # Railway (stderr) para poder depurarlo.
 #
-set -euo pipefail
+# La imagen bookworm ejecuta los scripts de entrypoint.d con dash (POSIX sh),
+# que NO soporta "pipefail" (es de bash). Usamos solo "set -eu", compatible.
+set -eu
 
 cd /var/www/html
 
