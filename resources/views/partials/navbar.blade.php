@@ -3,7 +3,7 @@
     {{-- Marca del juego --}}
     <a href="{{ route('zones.index') }}" class="epic-brand">
         <span class="epic-brand__crest">⚔️</span>
-        <span class="epic-brand__text">Clash of <span>Laraveland</span></span>
+        <span class="epic-brand__text">World Of <span>Laraveland</span></span>
     </a>
 
     {{-- Navegación --}}
