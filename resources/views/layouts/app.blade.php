@@ -10,7 +10,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/islands.jsx', 'resources/js/audio.js'])
-    @stack('styles') <!-- Aquí Laravel inyectará los estilos de intro.blade.php -->
+    @stack('styles') 
 
 </head>
 
