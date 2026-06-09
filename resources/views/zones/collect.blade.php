@@ -4,8 +4,8 @@
 
 @section('content')
 
-<div class="text-center">
-    <h2>Recolectar Materiales en la {{ $zone->name }}</h2>
+<div class="action-view collect-view text-center">
+    <h1 class="action-view__title">Recolectar en {{ $zone->name }}</h1>
 
     @if (isset($successMessage))
     <div class="alert alert-success mt-4">
@@ -21,17 +21,17 @@
 
 
 
-    <div class="mt-4 col-2">
-        <a href="{{ route('zones.show', $zone->id) }}" class="btn btn-primary">Volver a la Zona</a>
+    <div class="mt-2 mb-3">
+        <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost">← Volver a la Zona</a>
     </div>
 
 
     <!-- Temporizador -->
     @if (isset($timeRemaining) && $timeRemaining > 0)
     <div class="mt-4">
-        <p id="timer" class="text-danger">
-            En progreso. Tiempo restante:
-            <span id="timeRemaining">{{ $timeRemaining }}</span> segundos.
+        <p id="timer" class="action-timer">
+            En progreso · quedan
+            <span id="timeRemaining">{{ $timeRemaining }}</span> s
         </p>
     </div>
 

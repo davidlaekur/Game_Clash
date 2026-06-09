@@ -1,4 +1,6 @@
 @import "bootstrap/dist/css/bootstrap.min.css";
+@import "./theme.css";
+@import "./game-map.css";
 @import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
@@ -6,8 +8,14 @@
 /* añado un emoji a cada rol */
 
 body {
-    font-family: 'Nunito', sans-serif;
-    background-color: rosybrown;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    background-color: #161b22;
+    background-image:
+        radial-gradient(ellipse 90% 60% at 50% -8%, rgba(201,162,75,.10), transparent 60%),
+        linear-gradient(180deg, #1c2530 0%, #11151b 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    min-height: 100vh;
 }
 .role-icon.explorer::before {
     content: "⚔️ ";

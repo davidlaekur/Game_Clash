@@ -4,11 +4,11 @@
 
 @section('content')
 
-<div class="container mt-4">
-    <a href="{{ route('zones.show', $zone->id) }}" class="btn btn-primary mb-3">Volver a la Zona</a>
+<div class="container mt-4 invent-view">
+    <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost mb-3">← Volver a la Zona</a>
 
     <div class="text-center">
-        <h2 class="mb-4">Crear un invento en la {{ $zone->name }}</h2>
+        <h1 class="action-view__title">Forjar un invento en {{ $zone->name }}</h1>
 
         @if (isset($error))
         <div class="alert alert-danger">
@@ -24,9 +24,9 @@
 
         @if (isset($timeRemaining) && $timeRemaining > 0)
         <div class="mt-4">
-            <p id="timer" class="text-danger font-timer">
-                Inventando en progreso. Tiempo restante:
-                <span id="timeRemaining">{{ $timeRemaining }}</span> segundos.
+            <p id="timer" class="action-timer">
+                Forjando · quedan
+                <span id="timeRemaining">{{ $timeRemaining }}</span> s
             </p>
         </div>
 

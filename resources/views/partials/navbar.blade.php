@@ -1,45 +1,36 @@
-<nav class="navbar navbar-expand-lg navbar-dark py-3">
-    <div class="container">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav py-2 gap-5">
-                <li class="nav-item"><a class="nav-link fs-4" href="{{ route('zones.index') }}">Mapa</a></li>
-                <li class="nav-item"><a class="nav-link fs-4" href="{{ route('players.show', Auth::user()->id) }}">Jugador</a></li>
-                <li class="nav-item"><a class="nav-link fs-4" href="{{ route('teams.index') }}">Equipo</a></li>
-                <li class="nav-item"><a class="nav-link fs-4" href="{{ route('actions.index') }}">Acciones</a></li>
-            </ul>
-            <div class="d-flex ms-auto align-items-center gap-4">
+@php $u = Auth::user(); @endphp
+<nav class="epic-nav">
+    {{-- Marca del juego --}}
+    <a href="{{ route('zones.index') }}" class="epic-brand">
+        <span class="epic-brand__crest">⚔️</span>
+        <span class="epic-brand__text">Clash of <span>Laraveland</span></span>
+    </a>
 
-                <!-- Usuario logueado -->
+    {{-- Navegación --}}
+    <ul class="epic-menu">
+        <li><a href="{{ route('zones.index') }}" class="{{ request()->routeIs('zones.*') ? 'is-active' : '' }}">🗺️ Mapa</a></li>
+        <li><a href="{{ route('players.show', $u->id) }}" class="{{ request()->routeIs('players.*') ? 'is-active' : '' }}">🧙 Jugador</a></li>
+        <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'is-active' : '' }}">🛡️ Equipo</a></li>
+        <li><a href="{{ route('actions.index') }}" class="{{ request()->routeIs('actions.*') ? 'is-active' : '' }}">⏳ Acciones</a></li>
+    </ul>
 
-                <span class="navbar-text fs-5 text-white">
-                    <i class="fas fa-user"></i> {{ Auth::user()->name }}
-                    <!-- Mostrar rol y equipo con separador -->
-                    <span class=" text-secondary">
-                        <span class="ms-2 role-icon {{ strtolower(Auth::user()->role->name) }}">{{ ucfirst(Auth::user()->role->name) }}</span>
-                        <span class="separator">|</span>
-                        <span class="team-name {{ strtolower(str_replace(' ', '-', Auth::user()->team->name ?? 'sin-equipo')) }}">
-                            {{ Auth::user()->team->name ?? 'Sin equipo' }}
-                        </span>
-                    </span>
-                </span>
-
-         <!--        <a class="nav-link fs-5 text-white" href="{{ route('players.show', Auth::user()->id) }}">
-                    <i class="fas fa-user-circle"></i> Perfil
-                </a>
-                
- -->
-                <!-- Cerrar sesión -->
-                <a class="nav-link fs-5 ms-5 text-white" href="{{ route('logout') }}"
-                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </a>
-            </div>
+    {{-- HUD del jugador --}}
+    <div class="epic-hud">
+        <div class="epic-hud__player">
+            <span class="epic-hud__name">{{ $u->name }}</span>
+            <span class="epic-hud__meta">
+                <span class="epic-hud__role">{{ ucfirst($u->role->name) }}</span>
+                @php
+                    $teamName = $u->team->name ?? null;
+                    $teamMod = $teamName ? (str_contains(strtolower($teamName), 'mordor') ? 'mordor' : (str_contains(strtolower($teamName), 'laraveland') ? 'laraveland' : 'none')) : 'none';
+                @endphp
+                <span class="epic-hud__team epic-hud__team--{{ $teamMod }}">{{ $teamName ?? 'Sin equipo' }}</span>
+            </span>
         </div>
+        <a href="{{ route('logout') }}" class="epic-hud__logout" title="Cerrar sesión"
+           onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+            ⏻
+        </a>
     </div>
 </nav>
-<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-    @csrf
-</form>
+<form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">@csrf</form>

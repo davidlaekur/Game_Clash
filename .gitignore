@@ -7,6 +7,7 @@
 /vendor
 .env
 .env.backup
+.env.production
 .env.testing
 .phpunit.result.cache
 Homestead.json
@@ -19,3 +20,22 @@ yarn-error.log
 /.vscode
 .DS_Store
 Thumbs.db
+
+# Logs de Laravel
+/storage/logs/*.log
+
+# Caché de herramientas
+/.php-cs-fixer.cache
+/.pint.cache
+
+# Guía de despliegue personal (notas internas, no para el repo)
+/DEPLOY.md
+
+# Enunciado del proyecto (documentación interna, no para el repo)
+Enunciado principal.pdf
+
+# Backup local del .env de Atlas
+.env.atlas.bak
+
+# Audios (pesados; se añadirán al preparar el despliegue)
+/public/audio

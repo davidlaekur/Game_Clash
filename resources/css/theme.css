@@ -1,0 +1,132 @@
+/* ============================================================
+   THEME — Sistema de diseño de Clash of Laraveland
+   Fuente única de verdad: paleta, tipografía, superficies,
+   botones y badges. Importado el primero en app.css.
+   Estética: medieval-fantasía épico, alto contraste sobre
+   fondo oscuro sobrio (sin rayas) para que el mapa resalte.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=MedievalSharp&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    /* --- paleta --- */
+    --brass:        #c9a24b;
+    --brass-light:  #f1d27a;
+    --brass-dark:   #7a5e1f;
+    --wood:         #5a3a1e;
+    --wood-dark:    #3d2713;
+    --parchment:    #e8d6a8;
+    --parchment-dark:#c9b27e;
+    --ink:          #2a1d0e;
+
+    /* superficies oscuras (fondo del juego) */
+    --bg-0: #0e0b07;   /* más oscuro */
+    --bg-1: #16110a;
+    --bg-2: #1f1810;   /* paneles */
+    --bg-3: #2a2014;   /* paneles elevados */
+    --line:  rgba(201,162,75,.22);
+
+    /* texto */
+    --text:      #ece3d2;
+    --text-dim:  #b6a684;
+    --text-mute: #8a7d63;
+
+    /* equipos */
+    --team-laraveland: #d8362e;
+    --team-mordor:     #1f1f24;
+    --neutral:         #8a8a78;
+
+    /* feedback */
+    --ok:   #4caf6a;
+    --warn: #e0a93b;
+    --bad:  #d8362e;
+
+    /* forma */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 18px;
+    --shadow-1: 0 4px 14px rgba(0,0,0,.45);
+    --shadow-2: 0 14px 40px rgba(0,0,0,.6);
+
+    /* tipografía */
+    --font-display: 'Cinzel', serif;
+    --font-script:  'MedievalSharp', cursive;
+    --font-body:    'Inter', system-ui, sans-serif;
+}
+
+/* --- tipografía base --- */
+.font-display { font-family: var(--font-display); }
+.font-script  { font-family: var(--font-script); }
+
+h1, h2, h3, .h-display {
+    font-family: var(--font-display);
+    color: var(--brass-light);
+    letter-spacing: .01em;
+}
+
+/* --- superficies / paneles --- */
+.panel {
+    background:
+        linear-gradient(180deg, var(--bg-3), var(--bg-2));
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255,255,255,.04);
+    color: var(--text);
+}
+.panel--framed {
+    box-shadow:
+        0 0 0 2px var(--brass),
+        0 0 0 5px var(--wood-dark),
+        var(--shadow-2);
+    border: none;
+}
+
+/* --- botón épico (CTA principal) --- */
+.btn-epic {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: var(--font-display); font-weight: 700;
+    color: var(--wood-dark);
+    background: linear-gradient(180deg, var(--brass-light), var(--brass));
+    border: 2px solid var(--wood-dark);
+    border-radius: var(--r-sm);
+    padding: .55rem 1.1rem;
+    text-decoration: none; cursor: pointer;
+    box-shadow: 0 3px 0 var(--wood-dark), 0 6px 14px rgba(0,0,0,.5);
+    transition: transform .08s ease, box-shadow .08s ease, filter .12s ease;
+}
+.btn-epic:hover  { filter: brightness(1.07); color: var(--wood-dark); }
+.btn-epic:active { transform: translateY(3px); box-shadow: 0 0 0 var(--wood-dark); }
+
+/* botón secundario (perfil oscuro) */
+.btn-ghost {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: var(--font-display); font-weight: 600;
+    color: var(--parchment);
+    background: rgba(0,0,0,.3);
+    border: 1px solid var(--line);
+    border-radius: var(--r-sm);
+    padding: .5rem 1rem; text-decoration: none; cursor: pointer;
+    transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+.btn-ghost:hover { background: rgba(241,210,122,.12); border-color: var(--brass); color: var(--brass-light); }
+
+/* --- badges / chips --- */
+.chip {
+    display: inline-flex; align-items: center; gap: .25rem;
+    font-size: .72rem; font-weight: 700;
+    padding: 2px 8px; border-radius: 999px;
+    border: 1px solid rgba(255,255,255,.25);
+    color: #fff; white-space: nowrap;
+}
+.chip--brass   { background: var(--brass-light); color: var(--wood-dark); border-color: var(--brass-dark); }
+.chip--team-laraveland { background: var(--team-laraveland); }
+.chip--team-mordor     { background: #2a2a30; }
+.chip--neutral         { background: rgba(138,138,120,.6); }
+
+/* contenedor principal del juego */
+.game-main {
+    width: 100%;
+    max-width: 1640px;
+    margin: 0 auto;
+    padding: 1.25rem 1.5rem 1.5rem;
+}

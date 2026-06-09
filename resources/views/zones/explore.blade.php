@@ -1,61 +1,48 @@
 @extends('layouts.app')
 
-@section('title', 'Explorando Zona')
+@section('title', 'Explorando ' . $zone->name)
 
 @section('content')
+<div class="action-view">
+    <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost action-view__back">← Volver a {{ $zone->name }}</a>
 
-<!--volver -->
-<div class="mb-4">
-    <a href="{{ route('zones.show', $zone->id) }}" class="btn btn-primary">Volver a la vista de la zona</a>
-</div>
+    <h1 class="action-view__title">Explorando {{ $zone->name }}</h1>
 
+    <img src="{{ asset($zone->image_detail) }}" alt="{{ $zone->name }}" class="action-view__hero">
 
-<h2>Explorando la {{ $zone->name }}</h2>
+    <div class="action-view__meta">
+        <span class="chip chip--brass">{{ ucfirst($zone->landscape) }}</span>
+    </div>
 
-<img src="{{ asset($zone->image_detail) }}" alt="Detalle de {{ $zone->name }}" class="card-img-top img-fluid" style="height: 400px; object-fit: cover;">
-
-<h4 class="mt-4"><strong>Paisaje:</strong> {{ ucfirst($zone->landscape) }}</h4>
-
-<!-- Temporizador -->
-<div class="text-center mt-4">
     @if ($timeRemaining > 0)
-        <p id="action-timer" class="text-danger  font-timer">
-            Estás explorando esta zona. Tiempo restante: 
-            <span id="timeRemaining">{{ $timeRemaining }}</span> segundos.
+        <p id="action-timer" class="action-timer">
+            Explorando · quedan <span id="timeRemaining">{{ $timeRemaining }}</span> s
         </p>
     @else
-        <p id="action-timer" class="text-success">
-            La acción ha sido completada. La zona ahora pertenece a tu equipo.
+        <p id="action-timer" class="action-timer action-timer--done">
+            ✅ Exploración completada. La zona pertenece a tu equipo.
         </p>
     @endif
+
+    <div class="action-view__stage">
+        <h3>Tus exploradores recorren el territorio…</h3>
+        <img src="{{ asset('images/animation/explore.gif') }}" alt="Exploración" class="action-view__anim">
+    </div>
 </div>
 
-<!-- JavaScript para el temporizador -->
 <script>
     let timeRemaining = parseInt(document.getElementById('timeRemaining')?.innerText || 0);
-
     if (timeRemaining > 0) {
         const timer = setInterval(() => {
             timeRemaining--;
             document.getElementById('timeRemaining').innerText = timeRemaining;
-
             if (timeRemaining <= 0) {
                 clearInterval(timer);
-
-                // Cambiar el mensaje cuando la acción se completa
-                const timerElement = document.getElementById('action-timer');
-                timerElement.classList.remove('text-danger');
-                timerElement.classList.add('text-success');
-                timerElement.innerText = "La exploración ha sido completada. La zona ahora pertenece a tu equipo.";
+                const t = document.getElementById('action-timer');
+                t.classList.add('action-timer--done');
+                t.innerText = '✅ Exploración completada. La zona pertenece a tu equipo.';
             }
-        }, 1000); // Reducir cada segundo
+        }, 1000);
     }
 </script>
-
-<div class="mt-4 text-center">
-    <h3 class="mb-3 fs-4">Estás explorando esta zona...</h3>
-    <img src="{{ asset('images/animation/explore.gif') }}" alt="Animación de exploración" style="width: 600px; height: auto;">
-</div>
-
-
 @endsection
