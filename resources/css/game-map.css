@@ -906,3 +906,71 @@
 }
 .inv-pagination .page-item.active .page-link { background: var(--brass); color: var(--wood-dark); border-color: var(--brass-dark); }
 .inv-pagination .page-item.disabled .page-link { opacity: .4; }
+
+/* chips de estado en recetas */
+.chip--ok  { background: rgba(76,175,106,.85); color: #04210f; border-color: rgba(76,175,106,.6); }
+.chip--bad { background: rgba(216,54,46,.85); color: #fff; border-color: rgba(216,54,46,.6); }
+
+/* ============================================================
+   TRANSFERENCIAS (teams/transfer)
+   ============================================================ */
+.transfer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 820px) { .transfer-grid { grid-template-columns: 1fr; } }
+.transfer-input {
+    width: 70px; background: rgba(0,0,0,.35); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px; padding: .25rem .4rem; text-align: center;
+}
+.transfer-btn { margin-top: .9rem; width: 100%; justify-content: center; }
+.transfer-view .game-table input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--brass); }
+
+/* ============================================================
+   FORJA DE INVENTOS (zones/invent)
+   ============================================================ */
+.forge-view { max-width: 1000px; margin: 0 auto; }
+.forge-view__back { display: inline-flex; margin-bottom: 1rem; }
+.forge-timer { max-width: 460px; margin: 0 auto 1.25rem; text-align: center; }
+.forge-form { display: flex; flex-direction: column; gap: 1.25rem; }
+.forge-block { padding: 1.1rem 1.2rem; }
+.forge-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .9rem; }
+.forge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .7rem; }
+
+/* opción seleccionable (radio/checkbox oculto + tarjeta) */
+.forge-opt { display: block; cursor: pointer; }
+.forge-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.forge-opt__body {
+    display: flex; flex-direction: column; align-items: center; gap: .25rem; text-align: center;
+    padding: .7rem .5rem; border-radius: var(--r-sm);
+    background: rgba(0,0,0,.28); border: 2px solid var(--line); color: var(--text);
+    transition: border-color .12s ease, background .12s ease, transform .1s ease;
+}
+.forge-opt:hover .forge-opt__body { border-color: var(--brass); transform: translateY(-2px); }
+.forge-opt input:checked + .forge-opt__body {
+    border-color: var(--brass-light); background: rgba(241,210,122,.14);
+    box-shadow: 0 0 14px rgba(241,210,122,.4);
+}
+.forge-opt__name { font-family: var(--font-display); font-weight: 700; font-size: .9rem; }
+.forge-opt__sub { font-size: .72rem; color: var(--text-mute); }
+.forge-opt__img { width: 64px; height: 64px; object-fit: contain; }
+.forge-opt--item.is-locked { opacity: .45; cursor: not-allowed; }
+.forge-opt--item.is-locked:hover .forge-opt__body { border-color: var(--line); transform: none; }
+
+.forge-submit { text-align: center; }
+.forge-recipes__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; }
+.forge-recipe { background: rgba(0,0,0,.25); border: 1px solid var(--line); border-radius: var(--r-sm); padding: .7rem .9rem; }
+.forge-recipe__name { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .5rem; font-size: .95rem; }
+.forge-recipe ul { list-style: none; margin: 0; padding: 0; }
+.forge-recipe li { display: flex; justify-content: space-between; align-items: center; padding: .25rem 0; color: var(--text-dim); font-size: .85rem; }
+
+/* recolectar: materiales con input */
+.collect-mat {
+    display: flex; flex-direction: column; align-items: center; gap: .3rem; text-align: center;
+    padding: .7rem .5rem; border-radius: var(--r-sm);
+    background: rgba(0,0,0,.28); border: 1px solid var(--line);
+}
+.collect-mat__name { font-family: var(--font-display); font-weight: 700; color: var(--text); font-size: .88rem; }
+.collect-mat__sub { font-size: .72rem; color: var(--text-mute); }
+.collect-store { display: flex; align-items: center; gap: .6rem; justify-content: center; color: var(--text); }
+.collect-select {
+    background: rgba(0,0,0,.35); color: var(--text); border: 1px solid var(--line);
+    border-radius: var(--r-sm); padding: .4rem .7rem; font-family: var(--font-body);
+}

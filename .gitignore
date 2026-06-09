@@ -36,6 +36,3 @@ Enunciado principal.pdf
 
 # Backup local del .env de Atlas
 .env.atlas.bak
-
-# Audios (pesados; se añadirán al preparar el despliegue)
-/public/audio

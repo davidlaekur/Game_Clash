@@ -1,171 +1,120 @@
 @extends('layouts.app')
 
-@section('title', 'Crear Invento')
+@section('title', 'Forjar invento')
 
 @section('content')
+<div class="forge-view">
+    <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost forge-view__back">← Volver a la Zona</a>
 
-<div class="container mt-4 invent-view">
-    <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost mb-3">← Volver a la Zona</a>
+    <h1 class="action-view__title">Forjar un invento en {{ $zone->name }}</h1>
 
-    <div class="text-center">
-        <h1 class="action-view__title">Forjar un invento en {{ $zone->name }}</h1>
+    @if (isset($error))
+        <div class="alert alert-danger">{{ $error }}</div>
+    @endif
+    @if (session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
 
-        @if (isset($error))
-        <div class="alert alert-danger">
-            {{ $error }}
-        </div>
-        @endif
+    @if (isset($timeRemaining) && $timeRemaining > 0)
+        <p id="timer" class="action-timer forge-timer">
+            Forjando · quedan <span id="timeRemaining">{{ $timeRemaining }}</span> s
+        </p>
+    @endif
 
-        @if (session('success'))
-        <div class="alert alert-success">
-            {{ session('success') }}
-        </div>
-        @endif
+    <form action="{{ route('inventions.store') }}" method="POST" class="forge-form" data-sfx="invent">
+        @csrf
+        <input type="hidden" name="zone_id" value="{{ $zone->id }}">
 
-        @if (isset($timeRemaining) && $timeRemaining > 0)
-        <div class="mt-4">
-            <p id="timer" class="action-timer">
-                Forjando · quedan
-                <span id="timeRemaining">{{ $timeRemaining }}</span> s
-            </p>
-        </div>
-
-        <script>
-            let timeRemaining = parseInt(document.getElementById('timeRemaining')?.innerText || 0);
-
-            if (timeRemaining > 0) {
-                const timer = setInterval(() => {
-                    timeRemaining--;
-                    document.getElementById('timeRemaining').innerText = timeRemaining;
-
-                    if (timeRemaining <= 0) {
-                        clearInterval(timer);
-                        const timerElement = document.getElementById('timer');
-                        timerElement.classList.remove('text-danger');
-                        timerElement.classList.add('text-success');
-                        timerElement.innerText = "El invento ha sido completado. Puedes realizar otra acción.";
-                    }
-                }, 1000);
-            }
-        </script>
-        @endif
-
-        <form action="{{ route('inventions.store') }}" method="POST" class="mt-4">
-            @csrf
-            <input type="hidden" name="zone_id" value="{{ $zone->id }}">
-
-            <!-- Selección de material -->
-            <h3 class="mb-3">Selecciona el material necesario</h3>
-            <div class="row row-cols-2 row-cols-md-4 g-3">
+        <div class="panel forge-block">
+            <h3 class="forge-block__title">1 · Material necesario</h3>
+            <div class="forge-grid">
                 @foreach ($inventoryMaterials as $material)
-                <div class="col">
-                    <div class="card text-center p-1" style="max-width: 140px;">
-                        <div class="card-body p-2">
-                            <label for="material-{{ $material->material->id }}" class="form-label">
-                                💎 {{ $material->material->name }}<br>
-                                <small class="text-muted">Disponibles: {{ $material->quantity }}</small>
-                            </label>
-                            <input
-                                type="radio"
-                                id="material-{{ $material->material->id }}"
-                                name="material_id"
-                                value="{{ $material->material->id }}"
-                                class="form-check-input mx-auto d-block"
-                                required>
-                        </div>
-                    </div>
-                </div>
+                    <label class="forge-opt">
+                        <input type="radio" name="material_id" value="{{ $material->material->id }}" required>
+                        <span class="forge-opt__body">
+                            <span class="forge-opt__name">💎 {{ $material->material->name }}</span>
+                            <span class="forge-opt__sub">x{{ $material->quantity }}</span>
+                        </span>
+                    </label>
                 @endforeach
             </div>
+        </div>
 
-            <!-- Inventos disponibles para crear -->
-            <h3 class="mt-4 mb-3">Selecciona el invento para crear:</h3>
-            <div class="row row-cols-2 row-cols-md-4 g-3">
+        <div class="panel forge-block">
+            <h3 class="forge-block__title">2 · Invento a crear</h3>
+            <div class="forge-grid">
                 @foreach ($inventionTypes as $type)
-                @php
-                $hasRequirements = $type->needs->isEmpty() || $type->needs->every(fn($need) => $user->inventory->inventions->contains('inventiontype_id', $need->parent_id));
-                @endphp
-                <div class="col">
-                    <div class="card text-center @if(!$hasRequirements) bg-light @else bg-success @endif">
-                        <div class="card-body">
-                            <img src="{{ asset($type->image) }}" alt="{{ $type->name }}" style="width: 80px; height: 80px; margin-bottom: 10px;">
-                            <label for="invention-{{ $type->id }}" class="form-label">
-                                {{ $type->name }} (Nivel: {{ $type->level }})
-                            </label>
-                            <input
-                                type="radio"
-                                id="invention-{{ $type->id }}"
-                                name="invention_type"
-                                value="{{ $type->id }}"
-                                class="form-check-input mx-auto d-block"
-                                {{ !$hasRequirements ? 'disabled' : '' }}
-                                required>
-                        </div>
-                    </div>
-                </div>
+                    @php
+                        $hasRequirements = $type->needs->isEmpty() || $type->needs->every(fn($need) => $user->inventory->inventions->contains('inventiontype_id', $need->parent_id));
+                    @endphp
+                    <label class="forge-opt forge-opt--item {{ $hasRequirements ? '' : 'is-locked' }}">
+                        <input type="radio" name="invention_type" value="{{ $type->id }}" {{ $hasRequirements ? '' : 'disabled' }} required>
+                        <span class="forge-opt__body">
+                            <img src="{{ asset($type->image) }}" alt="{{ $type->name }}" class="forge-opt__img">
+                            <span class="forge-opt__name">{{ $type->name }}</span>
+                            <span class="forge-opt__sub">Nivel {{ $type->level }}</span>
+                        </span>
+                    </label>
                 @endforeach
             </div>
+        </div>
 
-                    <!-- Inventos en el inventario -->
-                    <div class="mt-4 mb-4">
-                <h3 class="mb-3">Inventos en tu inventario</h3>
-                <div class="row row-cols-2 row-cols-md-4 g-3">
+        @if ($user->inventory->inventions->count() > 0)
+            <div class="panel forge-block">
+                <h3 class="forge-block__title">3 · Inventos previos a consumir</h3>
+                <div class="forge-grid">
                     @foreach ($user->inventory->inventions as $invention)
-                    <div class="col">
-                        <div class="card text-center p-2" style="max-width: 180px;">
-                            <div class="card-body">
-                                <label for="invention-{{ $invention->id }}" class="form-label">
-                                    {{ $invention->name }}
-                                </label>
-                                <input
-                                    type="checkbox"
-                                    id="invention-{{ $invention->id }}"
-                                    name="required_inventions[]"
-                                    value="{{ $invention->id }}"
-                                    class="form-check-input mx-auto d-block">
-                            </div>
-                        </div>
-                    </div>
+                        <label class="forge-opt">
+                            <input type="checkbox" name="required_inventions[]" value="{{ $invention->id }}">
+                            <span class="forge-opt__body"><span class="forge-opt__name">{{ $invention->name }}</span></span>
+                        </label>
                     @endforeach
                 </div>
             </div>
+        @endif
 
-            <button type="submit" class="btn btn-success p-3 mt-4" 
-                {{ session('actionBlocked') ? 'disabled' : '' }}>
-                Crear Invento
-            </button>
+        <div class="forge-submit">
+            <button type="submit" class="btn-epic" {{ session('actionBlocked') ? 'disabled' : '' }}>⚒️ Crear invento</button>
+        </div>
 
-            <!-- Inventos previos requeridos -->
-            <div class="mt-4">
-                <h3 class="mb-3">Inventos previos necesarios</h3>
-                <div class="row row-cols-2 row-cols-md-4 g-3">
-                    @foreach ($inventionTypes as $type)
-                    @if (!$type->needs->isEmpty())
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ $type->name }}</h5>
-                                <ul class="list-group">
-                                    @foreach ($type->needs as $need)
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        {{ $need->parent->name }}
-                                        <span class="badge {{ $user->inventory->inventions->contains('inventiontype_id', $need->parent_id) ? 'bg-success' : 'bg-danger' }}">
-                                            {{ $user->inventory->inventions->contains('inventiontype_id', $need->parent_id) ? 'Disponible' : 'No disponible' }}
-                                        </span>
+        @php $withNeeds = $inventionTypes->filter(fn($t) => !$t->needs->isEmpty()); @endphp
+        @if ($withNeeds->count() > 0)
+            <div class="panel forge-block forge-recipes">
+                <h3 class="forge-block__title">📜 Recetas (requisitos previos)</h3>
+                <div class="forge-recipes__grid">
+                    @foreach ($withNeeds as $type)
+                        <div class="forge-recipe">
+                            <h4 class="forge-recipe__name">{{ $type->name }}</h4>
+                            <ul>
+                                @foreach ($type->needs as $need)
+                                    @php $have = $user->inventory->inventions->contains('inventiontype_id', $need->parent_id); @endphp
+                                    <li>
+                                        <span>{{ $need->parent->name }}</span>
+                                        <span class="chip {{ $have ? 'chip--ok' : 'chip--bad' }}">{{ $have ? 'Tienes' : 'Falta' }}</span>
                                     </li>
-                                    @endforeach
-                                </ul>
-                            </div>
+                                @endforeach
+                            </ul>
                         </div>
-                    </div>
-                    @endif
                     @endforeach
                 </div>
             </div>
-
-    
-        </form>
-    </div>
+        @endif
+    </form>
 </div>
 
+<script>
+    let timeRemaining = parseInt(document.getElementById('timeRemaining')?.innerText || 0);
+    if (timeRemaining > 0) {
+        const timer = setInterval(() => {
+            timeRemaining--;
+            document.getElementById('timeRemaining').innerText = timeRemaining;
+            if (timeRemaining <= 0) {
+                clearInterval(timer);
+                const t = document.getElementById('timer');
+                t.classList.add('action-timer--done');
+                t.innerText = "✅ Invento completado. Ya puedes actuar.";
+            }
+        }, 1000);
+    }
+</script>
 @endsection
