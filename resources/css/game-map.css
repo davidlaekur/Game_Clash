@@ -795,3 +795,81 @@
 .battle-result--lost { background: rgba(216,54,46,.18); border: 1px solid rgba(216,54,46,.6); color: #ffb3ad; }
 
 .battle-view__stage { text-align: center; margin-top: 1rem; }
+
+/* ============================================================
+   PERFIL DE JUGADOR (players/show)
+   ============================================================ */
+.profile-view { max-width: 1100px; margin: 0 auto; }
+.profile-view__back { margin-bottom: 1rem; }
+.profile-view__title {
+    font-family: var(--font-display); font-weight: 900; text-align: center;
+    color: var(--brass-light); margin-bottom: 1.5rem; font-size: clamp(1.6rem,3vw,2.4rem);
+    text-shadow: 0 2px 6px #000;
+}
+.profile-grid { display: grid; grid-template-columns: 360px 1fr; gap: 1.25rem; align-items: start; }
+@media (max-width: 860px) { .profile-grid { grid-template-columns: 1fr; } }
+
+.profile-card { padding: 1.5rem 1.25rem; text-align: center; }
+.profile-card__avatar {
+    width: 130px; height: 130px; border-radius: 50%; object-fit: cover;
+    border: 3px solid var(--brass); box-shadow: 0 4px 14px rgba(0,0,0,.6); margin-bottom: .75rem;
+}
+.profile-card__name { font-family: var(--font-display); color: #fff; margin: 0 0 .4rem; }
+.profile-card__points { display: flex; gap: 1rem; justify-content: center; margin: 1rem 0; }
+.profile-card__points div { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: var(--r-sm); padding: .5rem .9rem; }
+.profile-stat__label { display: block; font-size: .68rem; text-transform: uppercase; color: var(--text-mute); letter-spacing: .06em; }
+.profile-card__points b { font-family: var(--font-display); font-size: 1.3rem; color: var(--brass-light); }
+.profile-card__sub { font-family: var(--font-display); font-size: 1rem; color: var(--brass-light); margin: 1rem 0 .5rem; }
+
+.profile-stats { list-style: none; margin: 0 0 1rem; padding: 0; text-align: left; }
+.profile-stats li { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--line); color: var(--text-dim); font-size: .9rem; }
+.profile-stats li b { color: var(--text); font-family: var(--font-display); }
+.profile-card__edit { margin-top: .5rem; }
+
+.profile-side { display: flex; flex-direction: column; gap: 1.25rem; }
+.profile-block { padding: 1.1rem 1.2rem; }
+.profile-block--inv { text-align: center; }
+.profile-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .9rem; }
+.profile-rewards { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
+.reward-card {
+    width: 160px; text-align: center; background: rgba(0,0,0,.28);
+    border: 1px solid var(--line); border-radius: var(--r-sm); padding: .8rem;
+}
+.reward-card img { width: 72px; height: 72px; object-fit: contain; margin-bottom: .4rem; }
+.reward-card strong { display: block; color: var(--text); font-size: .9rem; }
+.reward-card p { color: var(--text-mute); font-size: .78rem; margin: .3rem 0 0; }
+
+/* ============================================================
+   EQUIPO (teams/index)
+   ============================================================ */
+.team-view { max-width: 1200px; margin: 0 auto; }
+.team-view__back { margin-bottom: 1rem; }
+.team-view__title, .team-view__sub {
+    font-family: var(--font-display); font-weight: 900; text-align: center;
+    color: var(--brass-light); text-shadow: 0 2px 6px #000;
+}
+.team-view__title { font-size: clamp(1.6rem,3vw,2.4rem); margin-bottom: 1.25rem; }
+.team-view__sub { font-size: 1.5rem; margin: 2rem 0 1rem; }
+
+.team-inventories { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 680px) { .team-inventories { grid-template-columns: 1fr; } }
+.team-inv { padding: 1.2rem; text-align: center; }
+.team-inv__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .9rem; }
+
+.team-banner { margin-top: 1.5rem; padding: 1.6rem; text-align: center; }
+.team-banner__flag { max-width: 200px; margin: 0 auto 1rem; display: block; }
+.team-banner__name { font-family: var(--font-display); font-weight: 900; margin: 0 0 .5rem; font-size: 1.8rem; }
+.team-banner--laraveland .team-banner__name { color: #ff6259; }
+.team-banner--mordor .team-banner__name { color: #b9b9c4; }
+.team-banner--neutral .team-banner__name { color: var(--brass-light); }
+.team-banner__desc { color: var(--text-dim); margin-bottom: 1rem; }
+.team-banner__actions { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; }
+
+.team-members { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+.member-card { padding: 1.2rem; text-align: center; }
+.member-card__avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--brass); margin-bottom: .6rem; }
+.member-card__name { font-family: var(--font-display); color: #fff; margin: 0 0 .4rem; font-size: 1.1rem; }
+.member-card__points { display: flex; gap: 1rem; justify-content: center; margin: .8rem 0; font-size: .82rem; color: var(--text-dim); }
+.member-card__points b { color: var(--brass-light); font-family: var(--font-display); }
+.member-card__stats { font-size: .82rem; }
+.team-noteam { padding: 2rem; text-align: center; margin-top: 1.5rem; }
