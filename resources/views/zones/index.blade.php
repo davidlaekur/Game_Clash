@@ -77,6 +77,29 @@
         'collect' => '⛏️ Recolectando', 'invent' => '💡 Forjando',
         'attack' => '⚔️ Atacando',
     ];
+
+    // Inventario rápido del jugador (materiales con cantidad)
+    $inventoryMaterials = collect();
+    if ($me->inventory) {
+        $inventoryMaterials = $me->inventory->materials()->with('material')->get()
+            ->map(fn($im) => [
+                'name'     => $im->material->name ?? 'Material',
+                'quantity' => $im->quantity,
+            ])
+            ->filter(fn($m) => $m['quantity'] > 0)
+            ->sortByDesc('quantity')
+            ->values();
+    }
+
+    // Atributos del jugador: catálogo completo de stats con su valor (0 si no tiene)
+    $statValues = $me->stats()->with('stat')->get()
+        ->mapWithKeys(fn($us) => [strtolower($us->stat->name ?? '') => (int) $us->value]);
+    $playerStats = \App\Models\Stat::orderBy('name')->get()
+        ->map(fn($s) => [
+            'name'  => $s->name,
+            'value' => $statValues[strtolower($s->name)] ?? 0,
+        ]);
+    $statMax = max(1, $playerStats->max('value') ?: 0, 10);
 @endphp
 
 <div class="warmap-page">
@@ -189,6 +212,35 @@
                     <li><span>Facción</span><b>{{ $myTeamName }}</b></li>
                     <li><span>Territorios</span><b>{{ $mine }} / {{ $total }}</b></li>
                 </ul>
+            </div>
+
+            {{-- Atributos del jugador --}}
+            <div class="panel side-block">
+                <h3 class="side-block__title">📊 Atributos</h3>
+                <ul class="side-stats">
+                    @foreach ($playerStats as $stat)
+                        <li class="side-stat">
+                            <span class="side-stat__name">{{ ucfirst($stat['name']) }}</span>
+                            <span class="side-stat__bar">
+                                <span class="side-stat__fill" style="width: {{ $stat['value'] / $statMax * 100 }}%"></span>
+                            </span>
+                            <span class="side-stat__val">{{ $stat['value'] }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+
+            {{-- Inventario rápido --}}
+            <div class="panel side-block">
+                <h3 class="side-block__title">🎒 Inventario</h3>
+                @forelse ($inventoryMaterials as $mat)
+                    <div class="side-item">
+                        <span class="side-item__name">{{ $mat['name'] }}</span>
+                        <span class="side-item__qty">×{{ $mat['quantity'] }}</span>
+                    </div>
+                @empty
+                    <p class="side-empty">Aún no has recogido materiales.</p>
+                @endforelse
             </div>
         </aside>
     </div>

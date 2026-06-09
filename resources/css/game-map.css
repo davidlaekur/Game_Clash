@@ -1145,3 +1145,29 @@ body.warmap-fullscreen-on { overflow: hidden; }
 .side-info li { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--line); color: var(--text-dim); font-size: .88rem; }
 .side-info li:last-child { border-bottom: none; }
 .side-info li b { color: var(--text); font-family: var(--font-display); }
+
+/* atributos: nombre · barra · valor */
+.side-stats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.side-stat { display: grid; grid-template-columns: 78px 1fr 28px; align-items: center; gap: .55rem; }
+.side-stat__name { color: var(--text-dim); font-size: .82rem; }
+.side-stat__bar { height: 8px; border-radius: 999px; background: rgba(0,0,0,.4); border: 1px solid var(--line); overflow: hidden; }
+.side-stat__fill {
+    display: block; height: 100%; min-width: 2px;
+    background: linear-gradient(90deg, var(--brass), var(--brass-light));
+    border-radius: 999px; transition: width .4s ease;
+}
+.side-stat__val { text-align: right; font-family: var(--font-display); font-weight: 700; color: var(--brass-light); font-size: .85rem; }
+
+/* inventario: material · cantidad */
+.side-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .45rem .6rem; border-radius: var(--r-sm);
+    background: rgba(0,0,0,.25); border: 1px solid var(--line); margin-bottom: .4rem;
+}
+.side-item:last-child { margin-bottom: 0; }
+.side-item__name { color: var(--text); font-size: .86rem; text-transform: capitalize; }
+.side-item__qty {
+    font-family: var(--font-display); font-weight: 800; color: var(--brass-light);
+    background: rgba(0,0,0,.4); border: 1px solid var(--brass-dark);
+    border-radius: 999px; padding: 0 9px; font-size: .8rem;
+}
