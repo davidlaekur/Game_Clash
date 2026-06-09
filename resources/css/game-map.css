@@ -25,11 +25,10 @@
     padding: 1.25rem 0 2.5rem;
 }
 .warmap-head {
-    max-width: 1500px;
-    margin: 0 auto 1rem;
-    padding: 0 1.5rem;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 1rem; flex-wrap: wrap;
+    width: 98vw;
+    max-width: 2200px;
+    margin: 0 auto .6rem;
+    padding: 0 1vw;
 }
 .warmap-head .warmap-title,
 .warmap-head .warmap-subtitle { text-align: left; margin: 0; }
@@ -39,16 +38,13 @@
     font-weight: 900;
     letter-spacing: .04em;
     color: var(--brass-light);
-    text-align: center;
     text-shadow: 0 2px 4px rgba(0,0,0,.6);
-    margin-bottom: .25rem;
-    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin-bottom: .15rem;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
 }
 .warmap-subtitle {
     font-family: 'MedievalSharp', cursive;
-    text-align: center;
     color: var(--parchment-dark);
-    margin-bottom: 1.5rem;
     font-size: 1.05rem;
 }
 
@@ -280,9 +276,11 @@
     touch-action: none;
     overscroll-behavior: contain;
     background: #11202b;
+    box-sizing: border-box;
+    border: 5px solid var(--wood-dark);
+    outline: 2px solid var(--brass);
+    outline-offset: -7px;
     box-shadow:
-        0 0 0 2px var(--brass),
-        0 0 0 6px var(--wood-dark),
         inset 0 0 120px rgba(0,0,0,.5),
         var(--shadow-2);
 }
@@ -357,10 +355,39 @@
     box-shadow: 0 8px 18px rgba(0,0,0,.7), 0 0 18px rgba(241,210,122,.9), inset 0 0 0 2px rgba(0,0,0,.35);
 }
 
-/* anillo de color por dueño alrededor del medallón */
-.warmap-marker--mine  .warmap-marker__pin { box-shadow: 0 5px 12px rgba(0,0,0,.6), inset 0 0 0 2px rgba(0,0,0,.35), 0 0 0 3px var(--brass); }
-.warmap-marker--enemy .warmap-marker__pin { box-shadow: 0 5px 12px rgba(0,0,0,.6), inset 0 0 0 2px rgba(0,0,0,.35), 0 0 0 3px var(--team-laraveland); }
-.warmap-marker--enemy .warmap-marker__def { background: linear-gradient(180deg, #7a1c18, #4a0f0c); border-color: #ff8a82; }
+/* ---- color del medallón por facción dueña ---- */
+/* Neutral: piedra apagada, claramente "sin dueño". */
+.warmap-marker--fac-neutral .warmap-marker__pin {
+    background:
+        radial-gradient(circle at 50% 50%, #efece3 0 54%, transparent 55%),
+        conic-gradient(from 210deg, #6b6b66, #b9b9ad 25%, #8c8c82 50%, #c7c7bb 75%, #6b6b66);
+    box-shadow: 0 5px 12px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.3), 0 0 0 2px #55554f;
+}
+.warmap-marker--fac-neutral .warmap-marker__def { background: linear-gradient(180deg, #44443f, #26261f); border-color: #9c9c8e; }
+
+/* Laraveland: carmesí. */
+.warmap-marker--fac-laraveland .warmap-marker__pin {
+    background:
+        radial-gradient(circle at 50% 50%, #fff1ee 0 54%, transparent 55%),
+        conic-gradient(from 210deg, #6e1411, #e85148 25%, #b3261f 50%, #f47169 75%, #6e1411);
+    box-shadow: 0 5px 12px rgba(0,0,0,.6), inset 0 0 0 2px rgba(0,0,0,.35), 0 0 0 3px #ff8a82;
+}
+.warmap-marker--fac-laraveland .warmap-marker__def { background: linear-gradient(180deg, #7a1c18, #4a0f0c); border-color: #ff8a82; }
+
+/* Ítaca: añil profundo, bien distinto del oro neutral. */
+.warmap-marker--fac-itaca .warmap-marker__pin {
+    background:
+        radial-gradient(circle at 50% 50%, #eef0ff 0 54%, transparent 55%),
+        conic-gradient(from 210deg, #21204a, #5b58c4 25%, #34327e 50%, #7a77e0 75%, #21204a);
+    box-shadow: 0 5px 12px rgba(0,0,0,.6), inset 0 0 0 2px rgba(0,0,0,.35), 0 0 0 3px #9b98ff;
+}
+.warmap-marker--fac-itaca .warmap-marker__def { background: linear-gradient(180deg, #2d2b6b, #1a1940); border-color: #9b98ff; }
+
+/* Tus zonas: halo dorado extra para localizarlas de un vistazo. */
+.warmap-marker.is-mine .warmap-marker__pin {
+    outline: 2px solid var(--brass-light);
+    outline-offset: 3px;
+}
 
 /* etiqueta (nombre + equipo) — visible solo en hover / zona actual */
 .warmap-marker__label {
@@ -382,8 +409,8 @@
 }
 .warmap-marker__team { font-size: 10px; font-weight: 700; }
 .warmap-marker__team--neutral    { color: var(--parchment-dark); }
-.warmap-marker__team--mine       { color: var(--brass-light); }
-.warmap-marker__team--enemy      { color: #ff8a82; }
+.warmap-marker__team--laraveland { color: #ff8a82; }
+.warmap-marker__team--itaca      { color: #9b98ff; }
 
 /* estrella "estás aquí" */
 .warmap-marker__here {
@@ -647,9 +674,9 @@
 }
 .hud__faction-name { font-family: var(--font-display); font-weight: 700; color: var(--text); }
 .hud__faction--laraveland .hud__faction-icon { box-shadow: 0 0 0 2px var(--team-laraveland); }
-.hud__faction--mordor     .hud__faction-icon { box-shadow: 0 0 0 2px #4a4a55; }
+.hud__faction--itaca      .hud__faction-icon { box-shadow: 0 0 0 2px #7a77e0; }
 
-.hud__territory { flex: 1; }
+.hud__territory { flex: 1; max-width: 620px; }
 .hud__bar {
     display: flex; height: 12px; border-radius: 999px; overflow: hidden;
     border: 1px solid var(--line); background: rgba(0,0,0,.35); margin: 3px 0;
@@ -663,6 +690,7 @@
 .hud__count--enemy { color: #ff8a82; }
 
 .hud__music {
+    margin-left: auto;
     width: 44px; height: 44px; flex: 0 0 44px;
     font-size: 1.2rem; cursor: pointer;
     background: rgba(0,0,0,.3); border: 1px solid var(--line);
@@ -674,9 +702,10 @@
 .hud__music[aria-pressed="false"] .hud__music-on { display: none; }
 .hud__music[aria-pressed="false"] .hud__music-off { display: inline; }
 
-@media (max-width: 760px) {
+@media (max-width: 980px) {
     .hud { flex-wrap: wrap; }
     .hud__faction { min-width: 0; }
+    .hud__territory { max-width: none; flex: 1 1 100%; order: 3; }
 }
 
 /* ============================================================
@@ -974,3 +1003,145 @@
     background: rgba(0,0,0,.35); color: var(--text); border: 1px solid var(--line);
     border-radius: var(--r-sm); padding: .4rem .7rem; font-family: var(--font-body);
 }
+
+/* ============================================================
+   AVENTURA (adventures/screen)
+   ============================================================ */
+.adv-view { max-width: 1100px; margin: 0 auto; }
+.adv-view__title {
+    font-family: var(--font-display); font-weight: 900; text-align: center;
+    color: var(--brass-light); margin-bottom: 1.25rem; font-size: clamp(1.6rem,3vw,2.4rem);
+    text-shadow: 0 2px 6px #000;
+}
+.adv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; align-items: start; margin-bottom: 1.25rem; }
+@media (max-width: 860px) { .adv-grid { grid-template-columns: 1fr; } }
+
+.adv-scene { overflow: hidden; }
+.adv-scene__img { width: 100%; height: 320px; object-fit: cover; display: block; }
+.adv-scene__body { padding: 1rem 1.2rem; }
+.adv-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .7rem; }
+.adv-text { color: var(--text-dim); margin: 0; }
+
+.adv-quiz { padding: 1.2rem 1.3rem; }
+.adv-question { color: var(--text); font-size: 1.05rem; margin: 0 0 1rem; }
+.adv-options { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.2rem; }
+.adv-option {
+    display: flex; align-items: center; gap: .6rem; cursor: pointer;
+    padding: .65rem .9rem; border-radius: var(--r-sm);
+    background: rgba(0,0,0,.28); border: 1px solid var(--line); color: var(--text);
+    transition: border-color .12s ease, background .12s ease;
+}
+.adv-option:hover { border-color: var(--brass); background: rgba(241,210,122,.08); }
+.adv-option input { width: 18px; height: 18px; accent-color: var(--brass); }
+.adv-option:has(input:checked) { border-color: var(--brass-light); background: rgba(241,210,122,.14); }
+.adv-answer, .adv-next { margin-top: .4rem; }
+.adv-next { display: inline-block; }
+
+.adv-block { padding: 1.1rem 1.2rem; margin-bottom: 1.25rem; }
+.adv-reward, .adv-prize { display: flex; gap: .9rem; align-items: center; }
+.adv-reward img, .adv-prize img {
+    width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-sm);
+    border: 1px solid var(--brass);
+}
+.adv-reward strong, .adv-prize strong { color: var(--brass-light); font-family: var(--font-display); }
+.adv-reward p, .adv-prize p { color: var(--text-dim); margin: .2rem 0 0; font-size: .85rem; }
+.adv-prizes { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 1rem; }
+
+/* ============================================================
+   LAYOUT MAPA + PANEL LATERAL
+   ============================================================ */
+/* Barra HUD: mismo ancho y bordes que el bloque del mapa para alinearlos. */
+.warmap-bar {
+    width: 96vw;
+    max-width: 2160px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+/* El bloque mapa+panel ocupa casi todo el ancho de la ventana. */
+.warmap-layout {
+    width: 96vw;
+    max-width: 2160px;
+    margin-left: 50%;
+    transform: translateX(-50%);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: 1.25rem;
+    align-items: start;
+}
+@media (max-width: 1080px) { .warmap-layout { grid-template-columns: 1fr; } }
+.warmap-stage-wrap { min-width: 0; }
+
+.warmap-side { display: flex; flex-direction: column; gap: 1rem; position: sticky; top: 80px; }
+
+/* ---- Modo pantalla completa: oculta el panel y el mapa ocupa todo ---- */
+:root { --nav-h: 80px; }
+
+/* el contenedor del juego deja de limitar el ancho/alto al entrar en pantalla completa */
+body.warmap-fullscreen-on .game-main { max-width: none; padding: 0; }
+body.warmap-fullscreen-on { overflow: hidden; }
+
+.warmap-page.is-fullscreen { padding: 0; }
+.warmap-page.is-fullscreen .warmap-head,
+.warmap-page.is-fullscreen .hud,
+.warmap-page.is-fullscreen .warmap-legend { display: none; }
+
+.warmap-page.is-fullscreen .warmap-layout {
+    width: 100vw;
+    max-width: none;
+    padding: 0;
+    margin: 0;
+    transform: none;
+    grid-template-columns: 1fr;
+    gap: 0;
+}
+.warmap-page.is-fullscreen .warmap-side { display: none; }
+
+/* el navbar sigue visible (sticky); el mapa ocupa el resto del alto */
+.warmap-page.is-fullscreen .warmap-stage {
+    aspect-ratio: auto;
+    height: calc(100vh - var(--nav-h));
+    max-height: none;
+    border-radius: 0;
+    box-shadow: inset 0 0 120px rgba(0,0,0,.5);
+}
+.side-block { padding: 1rem 1.1rem; }
+.side-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .75rem; font-size: 1rem; }
+.side-block__btn { margin-top: .6rem; width: 100%; justify-content: center; }
+
+/* cabecera del panel: título de la pantalla + acción principal */
+.side-head { text-align: center; }
+.side-head__title {
+    font-family: 'Cinzel', serif; font-weight: 900; letter-spacing: .03em;
+    color: var(--brass-light); text-shadow: 0 2px 4px rgba(0,0,0,.6);
+    margin: 0; font-size: 1.45rem; line-height: 1.15;
+}
+.side-head__sub {
+    font-family: 'MedievalSharp', cursive; color: var(--parchment-dark);
+    margin: .3rem 0 0; font-size: .9rem;
+}
+.side-head__cta { display: flex; justify-content: center; width: 100%; margin-top: .9rem; }
+.side-head form { margin: 0; }
+
+.side-loc { font-family: var(--font-display); font-weight: 700; color: var(--text); font-size: 1.15rem; margin: 0; }
+.side-loc__sub { color: var(--text-mute); margin: .1rem 0 0; font-size: .85rem; text-transform: capitalize; }
+.side-empty { color: var(--text-mute); font-style: italic; margin: 0; font-size: .9rem; }
+
+.side-action {
+    padding: .55rem .7rem; border-radius: var(--r-sm);
+    background: rgba(0,0,0,.3); border: 1px solid var(--line); margin-bottom: .5rem;
+}
+.side-action:last-child { margin-bottom: 0; }
+.side-action__head { display: flex; justify-content: space-between; align-items: center; }
+.side-action__type { font-family: var(--font-display); font-weight: 700; color: var(--text); font-size: .9rem; }
+.side-action__time {
+    font-family: var(--font-display); font-weight: 800; color: var(--brass-light);
+    background: rgba(0,0,0,.4); border: 1px solid var(--brass-dark); border-radius: 999px; padding: 0 8px; font-size: .82rem;
+}
+.side-action__done { color: var(--ok); font-weight: 700; font-size: .82rem; }
+.side-action__zone { color: var(--text-dim); font-size: .78rem; }
+
+.side-info { list-style: none; margin: 0; padding: 0; }
+.side-info li { display: flex; justify-content: space-between; padding: .35rem 0; border-bottom: 1px solid var(--line); color: var(--text-dim); font-size: .88rem; }
+.side-info li:last-child { border-bottom: none; }
+.side-info li b { color: var(--text); font-family: var(--font-display); }

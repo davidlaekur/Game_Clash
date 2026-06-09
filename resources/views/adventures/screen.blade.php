@@ -2,88 +2,77 @@
 
 @section('music', 'aventura')
 
+@section('title', 'Aventura en ' . $adventure->name)
+
 @section('content')
-<div class="container">
-    <div class="card">
-        <div class="card-header text-white bg-danger text-center">
-            <h2>Aventura en {{ $adventure->name }}</h2>
+<div class="adv-view">
+    <h1 class="adv-view__title">Aventura en {{ $adventure->name }}</h1>
+
+    @if(session('success'))
+        <div class="alert alert-success">{!! session('success') !!}</div>
+    @elseif(session('error'))
+        <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
+
+    <div class="adv-grid">
+        {{-- Escenario --}}
+        <div class="panel panel--framed adv-scene">
+            <img src="{{ asset('images/' . $adventure->image) }}" alt="{{ $adventure->name }}" class="adv-scene__img">
+            <div class="adv-scene__body">
+                <h3 class="adv-block__title">Descripción</h3>
+                <p class="adv-text">{{ $adventure->description }}</p>
+            </div>
         </div>
-        <div class="card-body form-advenrure">
-            <div class="row">
 
-                <!-- iniciamos aventura  -->
-                <div class="col-md-6">
-                    <img src="{{ asset('images/' . $adventure->image) }}" class=" card-img-top img-fluid" style="height: 500px; object-fit: cover;" alt="{{ $adventure->name }}">
-                    <h3>Descripción:</h3>
-                    <p>{{ $adventure->description }}</p>
-                </div>
+        {{-- Pregunta --}}
+        <div class="panel adv-quiz">
+            <h3 class="adv-block__title">❓ Pregunta</h3>
+            <p class="adv-question">{{ $scenario->question }}</p>
 
-                <!-- preguntas-->
-                <div class="col-md-6">
-                    <h3>Pregunta:</h3>
-            
-                    <p>{{ $scenario->question }}</p>
-                    
-                    <form action="{{ route('adventure.check', ['scenario' => $scenario->id]) }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="scenario_id" value="{{ $scenario->id }}">
-                        @foreach ($scenario->options as $option)
-                        <div class="form-check">
-                            <input class=" form-check-input" type="radio" name="selected_option" value="{{ $option->id }}" required>
-                            <label class="form-check-label">{{ $option->text }}</label>
-                        </div>
-                        @endforeach
-                        <button type="submit " class="  btn btn-primary mt-3">Responder</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- items ganados -->
-            @if ($scenario->item)
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h3>Recompensa:</h3>
-                    <img src="{{ asset('images/' . $scenario->item->image) }}" class="img-thumbnail" width="100">
-                    <p><strong>{{ $scenario->item->name }}</strong>: {{ $scenario->item->description }}</p>
-                </div>
-            </div>
-            @endif
-
-            <!-- premios -->
-            <div class="row mt-4">
-                <div class="col-md-12">
-                    <h3>Premios:</h3>
-                    <ul>
-                        @foreach ($adventure->items as $item)
-                        <li>
-                            <img src="{{ asset('images/' . $item->image) }}" class="img-thumbnail" width="100">
-                            <strong>{{ $item->name }}</strong>: {{ $item->description }}
-                        </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-
-            @if(session('success'))
-            <div class="alert alert-success mt-3">
-            {!! session('success') !!}
-            </div>
-
-
-            @elseif(session('error'))
-            <div class="alert alert-danger mt-3">
-                {{ session('error') }}
-            </div>
-            @endif
-
-            <!-- continuar  pregunta  -->
-            @if(session('answer_iscorrect'))
-            <form action="{{ route('adventure.continue', ['id' => $userAdventure->id]) }}" method="POST">
+            <form action="{{ route('adventure.check', ['scenario' => $scenario->id]) }}" method="POST">
                 @csrf
-                <button type="submit" class="btn btn-success mt-3">Siguiente Pregunta</button>
+                <input type="hidden" name="scenario_id" value="{{ $scenario->id }}">
+                <div class="adv-options">
+                    @foreach ($scenario->options as $option)
+                        <label class="adv-option">
+                            <input type="radio" name="selected_option" value="{{ $option->id }}" required>
+                            <span>{{ $option->text }}</span>
+                        </label>
+                    @endforeach
+                </div>
+                <button type="submit" class="btn-epic adv-answer">Responder</button>
             </form>
-            @endif
 
+            @if(session('answer_iscorrect'))
+                <form action="{{ route('adventure.continue', ['id' => $userAdventure->id]) }}" method="POST" class="adv-next">
+                    @csrf
+                    <button type="submit" class="btn-epic">Siguiente pregunta →</button>
+                </form>
+            @endif
+        </div>
+    </div>
+
+    {{-- Recompensa del escenario --}}
+    @if ($scenario->item)
+        <div class="panel adv-block">
+            <h3 class="adv-block__title">🎁 Recompensa</h3>
+            <div class="adv-reward">
+                <img src="{{ asset('images/' . $scenario->item->image) }}" alt="{{ $scenario->item->name }}">
+                <div><strong>{{ $scenario->item->name }}</strong><p>{{ $scenario->item->description }}</p></div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Premios de la aventura --}}
+    <div class="panel adv-block">
+        <h3 class="adv-block__title">🏆 Premios de la aventura</h3>
+        <div class="adv-prizes">
+            @foreach ($adventure->items as $item)
+                <div class="adv-prize">
+                    <img src="{{ asset('images/' . $item->image) }}" alt="{{ $item->name }}">
+                    <div><strong>{{ $item->name }}</strong><p>{{ $item->description }}</p></div>
+                </div>
+            @endforeach
         </div>
     </div>
 </div>

@@ -11,7 +11,7 @@ class TeamSeeder extends Seeder
     {
         $teams = [
             ['name' => 'Guardians of Laraveland','image' => 'images/flags/laravelFlag.gif'],
-            ['name' => 'Legion of Mordor','image' => 'images/flags/mordorFlag.gif'],    
+            ['name' => 'Legion Of Itaca','image' => 'images/flags/mordorFlag.gif'],
         ];
 
         foreach ($teams as $team) {

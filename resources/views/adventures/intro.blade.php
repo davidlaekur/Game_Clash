@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('music', 'aventura')
+
 @push('styles')
     @vite('resources/css/intro.scss') <!--solo carga este scss aqui   -->
 @endpush

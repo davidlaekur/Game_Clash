@@ -36,6 +36,11 @@ function ownClass(z) {
     if (z.ownership === "enemy") return "enemy";
     return "neutral";
 }
+function factionClass(z) {
+    if (z.faction === "laraveland") return "laraveland";
+    if (z.faction === "itaca") return "itaca";
+    return "neutral";
+}
 function landIcon(landscape) {
     const l = (landscape || "").toLowerCase();
     if (l.includes("bosque")) return "🌲";
@@ -63,6 +68,7 @@ export default function WarMap({
     const fit = useRef({ x: 0, y: 0, k: 1 });
     const drag = useRef({ active: false, sx: 0, sy: 0, ox: 0, oy: 0, moved: 0 });
     const [hover, setHover] = useState(null);
+    const [fullscreen, setFullscreen] = useState(false);
 
     // posiciones de cada zona sobre la imagen (px en coords del mundo).
     // Prioridad: ancla en tierra (ANCHORS) por coordenada; si no, rejilla.
@@ -121,6 +127,26 @@ export default function WarMap({
         return () => window.removeEventListener("resize", onResize);
     }, [computeFit]);
 
+    // Pantalla completa: marca la página y reencuadra cuando cambia el tamaño.
+    useEffect(() => {
+        const page = wrapRef.current?.closest(".warmap-page");
+        if (page) page.classList.toggle("is-fullscreen", fullscreen);
+        document.body.classList.toggle("warmap-fullscreen-on", fullscreen);
+        const id = requestAnimationFrame(() => {
+            const f = computeFit();
+            if (f) { fit.current = f; setView(f); }
+        });
+        return () => cancelAnimationFrame(id);
+    }, [fullscreen, computeFit]);
+
+    // Esc cierra la pantalla completa.
+    useEffect(() => {
+        if (!fullscreen) return;
+        const onKey = (e) => { if (e.key === "Escape") setFullscreen(false); };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [fullscreen]);
+
     // El puntero se captura solo al arrastrar (>6px), no en pointerdown,
     // para no interceptar el click en los marcadores.
     const onPointerDown = (e) => {
@@ -169,7 +195,7 @@ export default function WarMap({
                 {/* marcadores de zona */}
                 {points.map((p) => {
                     const z = p.zone;
-                    const cls = `warmap-marker warmap-marker--${ownClass(z)} ${z.current ? "is-current" : ""} ${hover === z.id ? "is-hover" : ""}`;
+                    const cls = `warmap-marker warmap-marker--${ownClass(z)} warmap-marker--fac-${factionClass(z)} ${z.ownership === "mine" ? "is-mine" : ""} ${z.current ? "is-current" : ""} ${hover === z.id ? "is-hover" : ""}`;
                     return (
                         <button
                             key={z.id}
@@ -188,7 +214,7 @@ export default function WarMap({
                             </span>
                             <span className="warmap-marker__label">
                                 <span className="warmap-marker__name">{z.name}</span>
-                                <span className={`warmap-marker__team warmap-marker__team--${ownClass(z)}`}>
+                                <span className={`warmap-marker__team warmap-marker__team--${factionClass(z)}`}>
                                     {z.teamName || "Neutral"}
                                 </span>
                             </span>
@@ -199,7 +225,14 @@ export default function WarMap({
 
             <div className="warmap-controls">
                 <button onClick={zoomIn} title="Ampliar" aria-label="Ampliar">＋</button>
-                <button onClick={resetView} title="Vista completa" aria-label="Vista completa">⤢</button>
+                <button onClick={resetView} title="Reencuadrar" aria-label="Reencuadrar">⤢</button>
+                <button
+                    onClick={() => setFullscreen((f) => !f)}
+                    title={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                    aria-label={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+                >
+                    {fullscreen ? "✕" : "⛶"}
+                </button>
             </div>
             <p className="warmap-hint">Arrastra para recorrer · rueda o ＋ para ampliar · clic en un territorio para entrar</p>
         </div>
