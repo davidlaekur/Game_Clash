@@ -14,7 +14,7 @@
 
 </head>
 
-<body class="text-dark d-flex flex-column min-vh-100">
+<body class="text-dark d-flex flex-column min-vh-100" data-music="@yield('music', '')">
     @if(!request()->is('login', 'register')) <!-- Oculta el navbar en login y register -->
     <header class="epic-header">
         <div class="container-fluid px-4">

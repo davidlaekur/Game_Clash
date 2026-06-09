@@ -2,6 +2,8 @@
 
 @section('title', 'Batalla en ' . $zone->name)
 
+@section('music', 'batalla')
+
 @section('content')
 <div class="battle-view">
     <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost battle-view__back">← Volver a la Zona</a>

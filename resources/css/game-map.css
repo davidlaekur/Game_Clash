@@ -873,3 +873,36 @@
 .member-card__points b { color: var(--brass-light); font-family: var(--font-display); }
 .member-card__stats { font-size: .82rem; }
 .team-noteam { padding: 2rem; text-align: center; margin-top: 1.5rem; }
+
+/* ============================================================
+   INVENTARIO / TABLAS (teams/show, actions/index)
+   ============================================================ */
+.inv-view { max-width: 900px; margin: 0 auto; }
+.inv-view__back { margin-bottom: 1rem; }
+.inv-view__title {
+    font-family: var(--font-display); font-weight: 900; text-align: center;
+    color: var(--brass-light); margin-bottom: 1.25rem; font-size: clamp(1.5rem,3vw,2.2rem);
+    text-shadow: 0 2px 6px #000;
+}
+.inv-view__meta { display: flex; gap: .8rem; align-items: center; justify-content: center; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.inv-block { padding: 1.1rem 1.2rem; margin-bottom: 1.25rem; }
+.inv-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 .9rem; }
+
+.game-table { width: 100%; border-collapse: collapse; color: var(--text); }
+.game-table thead th {
+    text-align: left; font-family: var(--font-display); font-weight: 700;
+    color: var(--brass-light); font-size: .85rem; text-transform: uppercase; letter-spacing: .04em;
+    padding: .55rem .7rem; border-bottom: 2px solid var(--line);
+}
+.game-table tbody td { padding: .55rem .7rem; border-bottom: 1px solid var(--line); }
+.game-table tbody tr:hover { background: rgba(241,210,122,.06); }
+.inv-empty { color: var(--text-mute); font-style: italic; text-align: center; padding: 1rem; }
+
+.inv-pagination { display: flex; justify-content: center; margin-top: 1rem; }
+.inv-pagination .pagination { display: flex; gap: .25rem; list-style: none; padding: 0; }
+.inv-pagination .page-link {
+    display: inline-block; padding: .35rem .7rem; border-radius: var(--r-sm);
+    background: rgba(0,0,0,.3); border: 1px solid var(--line); color: var(--parchment); text-decoration: none;
+}
+.inv-pagination .page-item.active .page-link { background: var(--brass); color: var(--wood-dark); border-color: var(--brass-dark); }
+.inv-pagination .page-item.disabled .page-link { opacity: .4; }

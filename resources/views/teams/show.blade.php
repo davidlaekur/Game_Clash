@@ -1,81 +1,48 @@
 @extends('layouts.app')
 
-@section('title', 'Inventario')
+@section('title', $inventory->name ?? 'Inventario')
 
 @section('content')
+<div class="inv-view">
+    <a href="{{ route('teams.index') }}" class="btn-ghost inv-view__back">← Volver</a>
 
-<div class="col-2">
-    <!-- volver -->
-    <a href="{{ route('teams.index') }}" class="btn btn-primary ">Volver</a>
-</div>
-
-
-
-<div class="container">
-    <h2 class="mt-4">{{ $inventory->name ?? 'Inventario no encontrado' }}</h2>
+    <h1 class="inv-view__title">{{ $inventory->name ?? 'Inventario no encontrado' }}</h1>
 
     @if ($inventory)
-        <h4 class="mt-4">Tipo: {{ $inventory->type }}</h4>
-
-        <!-- acceder a la vista de transferencia -->
-        <div class="mt-3">
-            <a href="{{ route('teams.transfer') }}" class="btn btn-secondary">Gestionar Transferencias</a>
+        <div class="inv-view__meta">
+            <span class="chip chip--brass">{{ ucfirst($inventory->type) }}</span>
+            <a href="{{ route('teams.transfer') }}" class="btn-ghost">🔄 Gestionar transferencias</a>
         </div>
 
-        <!-- Tabla con materiales -->
-        <h4 class="mt-4">Materiales:</h4>
-        <table class="table mt-4">
-            <thead>
-                <tr>
-                    <th>Material</th>
-                    <th>Cantidad</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if ($materials && $materials->count() > 0)
-                    @foreach ($materials as $material)
-                        <tr>
-                            <td>{{ $material->material->name }}</td>
-                            <td>{{ $material->quantity }}</td>
-                        </tr>
-                    @endforeach
-                @else
-                    <tr>
-                        <td colspan="2">No hay materiales en este inventario.</td>
-                    </tr>
-                @endif
-            </tbody>
-        </table>
+        <div class="panel inv-block">
+            <h3 class="inv-block__title">💎 Materiales</h3>
+            <table class="game-table">
+                <thead><tr><th>Material</th><th>Cantidad</th></tr></thead>
+                <tbody>
+                    @forelse ($materials ?? [] as $material)
+                        <tr><td>{{ $material->material->name }}</td><td>{{ $material->quantity }}</td></tr>
+                    @empty
+                        <tr><td colspan="2" class="inv-empty">No hay materiales en este inventario.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-        <!-- Tabla con inventos -->
-        <h4 class="mt-4">Inventos:</h4>
-        <table class="table mt-4">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Eficiencia</th>
-                    <th>Puntos</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if ($inventory->inventions && $inventory->inventions->count() > 0)
-                    @foreach ($inventory->inventions as $invention)
-                        <tr>
-                            <td>{{ $invention->name }}</td>
-                            <td>{{ $invention->efficiency }}</td>
-                            <td>{{ $invention->points }}</td>
-                        </tr>
-                    @endforeach
-                @else
-                    <tr>
-                        <td colspan="3">No hay inventos en este inventario.</td>
-                    </tr>
-                @endif
-            </tbody>
-        </table>
+        <div class="panel inv-block">
+            <h3 class="inv-block__title">💡 Inventos</h3>
+            <table class="game-table">
+                <thead><tr><th>Nombre</th><th>Eficiencia</th><th>Puntos</th></tr></thead>
+                <tbody>
+                    @forelse ($inventory->inventions ?? [] as $invention)
+                        <tr><td>{{ $invention->name }}</td><td>{{ $invention->efficiency }}</td><td>{{ $invention->points }}</td></tr>
+                    @empty
+                        <tr><td colspan="3" class="inv-empty">No hay inventos en este inventario.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     @else
-        <p>El inventario no existe o no está disponible.</p>
+        <div class="panel inv-block"><p class="inv-empty">El inventario no existe o no está disponible.</p></div>
     @endif
 </div>
-
 @endsection

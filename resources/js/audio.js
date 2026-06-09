@@ -6,6 +6,8 @@ const TRACKS = {
     collect: "sfx/collect.mp3",
     invent: "sfx/invent.mp3",
     attack: "sfx/attack.mp3",
+    aventura: "sfx/aventura.mp3",
+    batalla: "sfx/batalla2.mp3",
 };
 const KEY_ON = "col_audio_on";
 const KEY_TRACK = "col_audio_track";
@@ -75,6 +77,14 @@ function init() {
         btn.setAttribute("aria-pressed", on() ? "true" : "false");
         btn.addEventListener("click", () => setAudio(!on()));
     }
+
+    // música de fondo propia de la pantalla (atributo data-music en el body)
+    const pageMusic = document.body.dataset.music;
+    if (pageMusic && TRACKS[pageMusic] && on()) {
+        localStorage.setItem(KEY_TRACK, pageMusic);
+        localStorage.setItem(KEY_AT, "0");
+    }
+
     if (on()) {
         const start = () => { resumeOrTheme(); document.removeEventListener("pointerdown", start); };
         document.addEventListener("pointerdown", start, { once: true });

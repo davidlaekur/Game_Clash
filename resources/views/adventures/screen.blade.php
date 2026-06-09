@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('music', 'aventura')
+
 @section('content')
 <div class="container">
     <div class="card">
