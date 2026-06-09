@@ -8,7 +8,7 @@ const KEY_ON = "col_audio_on";
 const KEY_TRACK = "col_audio_track";
 const KEY_AT = "col_audio_at";
 const VOL = 0.4;
-const INTRO_SKIP = { aventura: 14 }; // saltar intro silenciosa de algunas pistas
+const INTRO_SKIP = {}; // las pistas ya empiezan en su parte util
 
 let audio = null;
 let currentTrack = null;
