@@ -77,29 +77,6 @@
         'collect' => '⛏️ Recolectando', 'invent' => '💡 Forjando',
         'attack' => '⚔️ Atacando',
     ];
-
-    // Inventario rápido del jugador (materiales con cantidad)
-    $inventoryMaterials = collect();
-    if ($me->inventory) {
-        $inventoryMaterials = $me->inventory->materials()->with('material')->get()
-            ->map(fn($im) => [
-                'name'     => $im->material->name ?? 'Material',
-                'quantity' => $im->quantity,
-            ])
-            ->filter(fn($m) => $m['quantity'] > 0)
-            ->sortByDesc('quantity')
-            ->values();
-    }
-
-    // Atributos del jugador: catálogo completo de stats con su valor (0 si no tiene)
-    $statValues = $me->stats()->with('stat')->get()
-        ->mapWithKeys(fn($us) => [strtolower($us->stat->name ?? '') => (int) $us->value]);
-    $playerStats = \App\Models\Stat::orderBy('name')->get()
-        ->map(fn($s) => [
-            'name'  => $s->name,
-            'value' => $statValues[strtolower($s->name)] ?? 0,
-        ]);
-    $statMax = max(1, $playerStats->max('value') ?: 0, 10);
 @endphp
 
 <div class="warmap-page">
@@ -114,36 +91,7 @@
         <div class="container"><div class="alert alert-danger">{{ session('error') }}</div></div>
     @endif
 
-    {{-- HUD: facción, reparto de territorios y control de música --}}
-    <div class="warmap-bar hud">
-        <div class="hud__faction hud__faction--{{ $myTeamMod }}">
-            <span class="hud__faction-icon">🛡️</span>
-            <div>
-                <span class="hud__label">Tu facción</span>
-                <span class="hud__faction-name">{{ $myTeamName }}</span>
-            </div>
-        </div>
-
-        <div class="hud__territory">
-            <span class="hud__label">Territorios · {{ $total }}</span>
-            <div class="hud__bar" title="Tuyas {{ $mine }} · Rivales {{ $enemy }} · Neutrales {{ $free }}">
-                <span class="hud__bar-seg hud__bar-seg--mine"  style="width: {{ $mine / $total * 100 }}%"></span>
-                <span class="hud__bar-seg hud__bar-seg--enemy" style="width: {{ $enemy / $total * 100 }}%"></span>
-                <span class="hud__bar-seg hud__bar-seg--free"  style="width: {{ $free / $total * 100 }}%"></span>
-            </div>
-            <div class="hud__counts">
-                <span class="hud__count hud__count--mine">⬤ {{ $mine }} tuyas</span>
-                <span class="hud__count hud__count--enemy">⬤ {{ $enemy }} rivales</span>
-                <span class="hud__count hud__count--free">⬤ {{ $free }} libres</span>
-            </div>
-        </div>
-
-        <button type="button" id="music-toggle" class="hud__music" aria-pressed="false" title="Música">
-            <span class="hud__music-on">🔊</span><span class="hud__music-off">🔇</span>
-        </button>
-    </div>
-
-    {{-- Mapa + panel lateral --}}
+    {{-- Mapa a ancho completo + panel lateral con toda la info --}}
     <div class="warmap-layout">
         <div class="warmap-stage-wrap">
             <div data-react-island="WarMap" data-props='@json($warmapProps)'></div>
@@ -156,9 +104,14 @@
         </div>
 
         <aside class="warmap-side">
-            {{-- Cabecera: título + acción principal --}}
+            {{-- Cabecera: título + acción principal + música --}}
             <div class="panel side-block side-head">
-                <h1 class="side-head__title">Mapa de Campaña</h1>
+                <div class="side-head__top">
+                    <h1 class="side-head__title">Mapa de Campaña</h1>
+                    <button type="button" id="music-toggle" class="hud__music" aria-pressed="false" title="Música">
+                        <span class="hud__music-on">🔊</span><span class="hud__music-off">🔇</span>
+                    </button>
+                </div>
                 <p class="side-head__sub">El Reino de Laraveland · {{ $zones->count() }} territorios en disputa</p>
                 @if(auth()->user()->role->name !== 'Admin')
                     <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta">⚔ Iniciar / Continuar Aventura</a>
@@ -168,6 +121,27 @@
                         <button type="submit" class="btn-epic side-head__cta">➕ Importar Territorios</button>
                     </form>
                 @endif
+            </div>
+
+            {{-- Facción + reparto de territorios --}}
+            <div class="panel side-block">
+                <div class="side-faction side-faction--{{ $myTeamMod }}">
+                    <span class="side-faction__icon">🛡️</span>
+                    <div>
+                        <span class="side-block__label">Tu facción</span>
+                        <span class="side-faction__name">{{ $myTeamName }}</span>
+                    </div>
+                </div>
+                <div class="hud__bar" title="Tuyas {{ $mine }} · Rivales {{ $enemy }} · Neutrales {{ $free }}">
+                    <span class="hud__bar-seg hud__bar-seg--mine"  style="width: {{ $mine / $total * 100 }}%"></span>
+                    <span class="hud__bar-seg hud__bar-seg--enemy" style="width: {{ $enemy / $total * 100 }}%"></span>
+                    <span class="hud__bar-seg hud__bar-seg--free"  style="width: {{ $free / $total * 100 }}%"></span>
+                </div>
+                <div class="hud__counts">
+                    <span class="hud__count hud__count--mine">⬤ {{ $mine }} tuyas</span>
+                    <span class="hud__count hud__count--enemy">⬤ {{ $enemy }} rivales</span>
+                    <span class="hud__count hud__count--free">⬤ {{ $free }} libres</span>
+                </div>
             </div>
 
             {{-- Ubicación actual --}}
@@ -201,45 +175,6 @@
                     </div>
                 @empty
                     <p class="side-empty">Sin acciones en curso.</p>
-                @endforelse
-            </div>
-
-            {{-- Resumen del jugador --}}
-            <div class="panel side-block">
-                <h3 class="side-block__title">🧙 {{ $me->name }}</h3>
-                <ul class="side-info">
-                    <li><span>Rol</span><b>{{ ucfirst($me->role->name) }}</b></li>
-                    <li><span>Facción</span><b>{{ $myTeamName }}</b></li>
-                    <li><span>Territorios</span><b>{{ $mine }} / {{ $total }}</b></li>
-                </ul>
-            </div>
-
-            {{-- Atributos del jugador --}}
-            <div class="panel side-block">
-                <h3 class="side-block__title">📊 Atributos</h3>
-                <ul class="side-stats">
-                    @foreach ($playerStats as $stat)
-                        <li class="side-stat">
-                            <span class="side-stat__name">{{ ucfirst($stat['name']) }}</span>
-                            <span class="side-stat__bar">
-                                <span class="side-stat__fill" style="width: {{ $stat['value'] / $statMax * 100 }}%"></span>
-                            </span>
-                            <span class="side-stat__val">{{ $stat['value'] }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-
-            {{-- Inventario rápido --}}
-            <div class="panel side-block">
-                <h3 class="side-block__title">🎒 Inventario</h3>
-                @forelse ($inventoryMaterials as $mat)
-                    <div class="side-item">
-                        <span class="side-item__name">{{ $mat['name'] }}</span>
-                        <span class="side-item__qty">×{{ $mat['quantity'] }}</span>
-                    </div>
-                @empty
-                    <p class="side-empty">Aún no has recogido materiales.</p>
                 @endforelse
             </div>
         </aside>
