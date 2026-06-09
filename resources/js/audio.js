@@ -1,65 +1,72 @@
 const BASE = "/audio/";
-const THEME = "music/theme.mp3";
 const TRACKS = {
+    theme: "music/theme.mp3",
     move: "sfx/move.mp3",
     explore: "sfx/explore.mp3",
     collect: "sfx/collect.mp3",
     invent: "sfx/invent.mp3",
     attack: "sfx/attack.mp3",
 };
-const KEY = "col_audio_on";
+const KEY_ON = "col_audio_on";
+const KEY_TRACK = "col_audio_track";
+const KEY_AT = "col_audio_at";
+const VOL = 0.4;
 
 let current = null;
-let currentName = null;
 
-const on = () => localStorage.getItem(KEY) === "1";
+const on = () => localStorage.getItem(KEY_ON) === "1";
 
-function fadeTo(target, vol = 0.4, ms = 600) {
-    const prev = current;
-    current = target;
-    target.volume = 0;
-    target.play().catch(() => {});
-    const step = vol / (ms / 50);
+function fadeOut(audio, ms = 500) {
+    if (!audio) return;
+    const step = audio.volume / (ms / 50);
     const t = setInterval(() => {
-        if (target.volume < vol - step) target.volume += step;
-        else { target.volume = vol; clearInterval(t); }
-        if (prev && prev !== target) {
-            prev.volume = Math.max(0, prev.volume - step);
-            if (prev.volume <= 0.01) prev.pause();
-        }
+        audio.volume = Math.max(0, audio.volume - step);
+        if (audio.volume <= 0.01) { audio.pause(); clearInterval(t); }
     }, 50);
 }
 
-const make = (src, loop) => {
-    const a = new Audio(BASE + src);
-    a.loop = loop;
+function fadeIn(audio, ms = 500) {
+    audio.volume = 0;
+    audio.play().catch(() => {});
+    const step = VOL / (ms / 50);
+    const t = setInterval(() => {
+        audio.volume = Math.min(VOL, audio.volume + step);
+        if (audio.volume >= VOL) clearInterval(t);
+    }, 50);
+}
+
+function play(name, { at = 0, fade = true } = {}) {
+    if (!on() || !TRACKS[name]) return;
+    const a = new Audio(BASE + TRACKS[name]);
+    a.loop = true;
     a.addEventListener("error", () => {});
-    return a;
-};
-
-const themeAudio = () => make(THEME, true);
-let theme = null;
-
-function playTheme() {
-    if (!on()) return;
-    if (!theme) theme = themeAudio();
-    currentName = "theme";
-    fadeTo(theme);
+    if (at > 0) a.currentTime = at;
+    localStorage.setItem(KEY_TRACK, name);
+    if (fade) { fadeOut(current); fadeIn(a); }
+    else { a.volume = VOL; a.play().catch(() => {}); }
+    current = a;
+    a.ontimeupdate = () => localStorage.setItem(KEY_AT, String(a.currentTime));
 }
 
 export function playTrack(name) {
-    if (!on() || !TRACKS[name]) return;
-    const a = make(TRACKS[name], true);
-    currentName = name;
-    fadeTo(a);
+    if (!on()) return;
+    localStorage.setItem(KEY_AT, "0");
+    play(name, { at: 0 });
+}
+
+function resumeOrTheme() {
+    if (!on()) return;
+    const name = localStorage.getItem(KEY_TRACK) || "theme";
+    const at = parseFloat(localStorage.getItem(KEY_AT) || "0") || 0;
+    play(TRACKS[name] ? name : "theme", { at, fade: false });
 }
 
 function setAudio(state) {
-    localStorage.setItem(KEY, state ? "1" : "0");
+    localStorage.setItem(KEY_ON, state ? "1" : "0");
     const btn = document.getElementById("music-toggle");
     if (btn) btn.setAttribute("aria-pressed", state ? "true" : "false");
-    if (state) playTheme();
-    else if (current) { current.pause(); }
+    if (state) { localStorage.setItem(KEY_TRACK, "theme"); play("theme", { at: 0 }); }
+    else { fadeOut(current); }
 }
 
 function init() {
@@ -69,11 +76,13 @@ function init() {
         btn.addEventListener("click", () => setAudio(!on()));
     }
     if (on()) {
-        const resume = () => { playTheme(); document.removeEventListener("pointerdown", resume); };
-        document.addEventListener("pointerdown", resume, { once: true });
+        const start = () => { resumeOrTheme(); document.removeEventListener("pointerdown", start); };
+        document.addEventListener("pointerdown", start, { once: true });
     }
     document.querySelectorAll("[data-sfx]").forEach((form) => {
-        form.addEventListener("submit", () => playTrack(form.dataset.sfx));
+        form.addEventListener("submit", () => {
+            if (on()) localStorage.setItem(KEY_TRACK, form.dataset.sfx);
+        });
     });
 }
 
