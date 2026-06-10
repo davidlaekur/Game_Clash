@@ -451,8 +451,8 @@ nav { position: relative; z-index: 1000; }
 // *
 .intro-brand {
 	position: absolute;
-	top: 50%; left: 50%;
-	transform: translate(-50%, -50%);
+	top: 13%; left: 50%;
+	transform: translate(-50%, 0);
 	z-index: 9990;
 	text-align: center;
 	pointer-events: none;
@@ -483,13 +483,66 @@ nav { position: relative; z-index: 1000; }
 	margin: .5rem 0 0;
 	text-transform: uppercase;
 }
-// aparece con un leve acercamiento y se desvanece antes del salto
+// aparece arriba con un leve acercamiento y se desvanece antes del salto
 @keyframes brand-show {
-	0% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); letter-spacing: .3em; }
-	10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-	16% { opacity: 1; }
-	22% { opacity: 0; transform: translate(-50%, -50%) scale(.92); }
+	0% { opacity: 0; transform: translate(-50%, 0) scale(1.14); letter-spacing: .3em; }
+	8% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+	14% { opacity: 1; }
+	20% { opacity: 0; transform: translate(-50%, -10%) scale(.95); }
 	100% { opacity: 0; }
+}
+
+// *
+// ---------- crawl de historia en perspectiva (estilo Star Wars) ------------- //
+// *
+.intro-crawl {
+	position: absolute; inset: 0;
+	z-index: 9985;
+	overflow: hidden;
+	perspective: 320px;
+	perspective-origin: 50% 0;
+	pointer-events: none;
+	opacity: 0;
+	animation: crawl-phase $duration ease-in 1;
+	// se difumina hacia el horizonte (arriba)
+	-webkit-mask-image: linear-gradient(180deg, transparent 6%, #000 38%, #000 100%);
+	mask-image: linear-gradient(180deg, transparent 6%, #000 38%, #000 100%);
+}
+.intro-crawl__content {
+	position: absolute;
+	top: 92%; left: 50%;
+	width: min(660px, 78%);
+	transform-origin: 50% 0;
+	transform: translateX(-50%) rotateX(38deg) translateY(0);
+	color: #f1d27a;
+	font-family: 'Cinzel', serif;
+	text-align: justify;
+	text-shadow: 0 0 14px rgba(241,210,122,.35);
+	animation: crawl-scroll $duration linear 1;
+}
+.intro-crawl__content p { font-size: 1.45rem; line-height: 1.5; margin: 0 0 1.1rem; font-weight: 600; }
+.intro-crawl__episode {
+	text-align: center; letter-spacing: .25em; text-transform: uppercase;
+	font-size: 1rem !important; color: #cdd8f0; font-weight: 700 !important;
+}
+.intro-crawl__title {
+	text-align: center; font-weight: 900;
+	font-size: clamp(1.8rem, 4vw, 2.8rem);
+	margin: 0 0 1.6rem; color: #f4ecd6;
+	text-shadow: 0 0 24px rgba(120,170,255,.4);
+}
+@keyframes crawl-phase {
+	0%, 4% { opacity: 0; }
+	9% { opacity: 1; }
+	27% { opacity: 1; }
+	32% { opacity: 0; }
+	100% { opacity: 0; }
+}
+// el texto asciende por el plano inclinado hacia el horizonte
+@keyframes crawl-scroll {
+	0% { transform: translateX(-50%) rotateX(38deg) translateY(20%); }
+	32% { transform: translateX(-50%) rotateX(38deg) translateY(-165%); }
+	100% { transform: translateX(-50%) rotateX(38deg) translateY(-165%); }
 }
 
 // *

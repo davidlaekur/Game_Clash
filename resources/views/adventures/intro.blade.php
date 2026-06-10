@@ -8,11 +8,28 @@
 
 @section('content')
 
-{{-- rótulo de marca: aparece al inicio y se desvanece antes del viaje --}}
+{{-- rótulo de marca: aparece arriba al inicio y se desvanece antes del viaje --}}
 <div class="intro-brand">
 	<span class="intro-brand__crest"><i class="fas fa-jedi" aria-hidden="true"></i></span>
 	<h1 class="intro-brand__title">World of <span>Laraveland</span></h1>
 	<p class="intro-brand__sub">Crónicas de la Aventura</p>
+</div>
+
+{{-- texto de historia con scroll en perspectiva (estilo Star Wars) --}}
+<div class="intro-crawl">
+	<div class="intro-crawl__content">
+		<p class="intro-crawl__episode">Crónicas de Laraveland</p>
+		<h2 class="intro-crawl__title">La Llamada de la Aventura</h2>
+		<p>El Reino de Laraveland vive tiempos convulsos. Las facciones de los
+		Guardianes de Laraveland y la Legión de Ítaca se disputan cada territorio
+		del mapa, y la frontera arde.</p>
+		<p>Un nuevo héroe se alza entre las estrellas. A bordo de su nave, parte
+		de su mundo natal rumbo a tierras lejanas, donde antiguos enigmas
+		aguardan a quien ose responderlos.</p>
+		<p>Más allá del salto a la velocidad de la luz, un planeta desconocido
+		esconde las pruebas que forjarán tu leyenda. Que la fortuna guíe tu
+		viaje, aventurero...</p>
+	</div>
 </div>
 
 {{-- campo de estrellas profundo (paralaje) --}}
