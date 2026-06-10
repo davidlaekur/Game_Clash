@@ -96,7 +96,7 @@ export default function WarMap({
     const computeFit = useCallback(() => {
         const el = wrapRef.current;
         if (!el) return null;
-        const k = Math.min(el.clientWidth / worldW, el.clientHeight / worldH);
+        const k = Math.max(el.clientWidth / worldW, el.clientHeight / worldH);
         return {
             k,
             x: (el.clientWidth - worldW * k) / 2,

@@ -2,16 +2,16 @@
 <nav class="epic-nav">
     {{-- Marca del juego --}}
     <a href="{{ route('zones.index') }}" class="epic-brand">
-        <span class="epic-brand__crest">⚔️</span>
+        <span class="epic-brand__crest"><i class="fas fa-jedi" aria-hidden="true"></i></span>
         <span class="epic-brand__text">World Of <span>Laraveland</span></span>
     </a>
 
     {{-- Navegación --}}
     <ul class="epic-menu">
-        <li><a href="{{ route('zones.index') }}" class="{{ request()->routeIs('zones.*') ? 'is-active' : '' }}">🗺️ Mapa</a></li>
-        <li><a href="{{ route('players.show', $u->id) }}" class="{{ request()->routeIs('players.*') ? 'is-active' : '' }}">🧙 Jugador</a></li>
-        <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'is-active' : '' }}">🛡️ Equipo</a></li>
-        <li><a href="{{ route('actions.index') }}" class="{{ request()->routeIs('actions.*') ? 'is-active' : '' }}">⏳ Acciones</a></li>
+        <li><a href="{{ route('zones.index') }}" class="{{ request()->routeIs('zones.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-map-marked-alt" aria-hidden="true"></i> <span class="epic-menu__txt">Mapa</span></a></li>
+        <li><a href="{{ route('players.show', $u->id) }}" class="{{ request()->routeIs('players.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-user-shield" aria-hidden="true"></i> <span class="epic-menu__txt">Jugador</span></a></li>
+        <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-shield-alt" aria-hidden="true"></i> <span class="epic-menu__txt">Equipo</span></a></li>
+        <li><a href="{{ route('actions.index') }}" class="{{ request()->routeIs('actions.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-hourglass-half" aria-hidden="true"></i> <span class="epic-menu__txt">Acciones</span></a></li>
     </ul>
 
     {{-- HUD del jugador --}}
