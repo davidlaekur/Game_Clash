@@ -167,9 +167,9 @@ nav { position: relative; z-index: 1000; }
 	66% { transform: translate(30%, 5%) rotate(18deg) scale(0.9); }
 	76% { transform: translate(-55%, -10%) rotate(-12deg) scale(0.6); }
 	// enfila el planeta (arriba-centro) y se adentra encogiendo
-	88% { transform: translate(-50%, -72%) rotate(-16deg) scale(0.2); opacity: 1; }
-	95% { transform: translate(-50%, -86%) rotate(-12deg) scale(0.04); opacity: .7; }
-	100% { transform: translate(-50%, -90%) rotate(-12deg) scale(0); opacity: 0; }
+	84% { transform: translate(-50%, -78%) rotate(-16deg) scale(0.28); opacity: 1; }
+	93% { transform: translate(-50%, -98%) rotate(-12deg) scale(0.08); opacity: .9; }
+	100% { transform: translate(-50%, -104%) rotate(-12deg) scale(0); opacity: 0; }
 }
 
 .subspace {
@@ -349,8 +349,9 @@ nav { position: relative; z-index: 1000; }
 // *
 .arrival {
 	position: absolute;
-	top: 30%; left: 50%;
-	transform: translate(-50%, -50%);
+	top: 50%; left: 50%;
+	// anclada donde la nave entra al planeta (~110px sobre el centro)
+	transform: translate(-50%, calc(-50% - 110px));
 	width: 0; height: 0;
 	z-index: 9998;
 	pointer-events: none;
@@ -366,9 +367,9 @@ nav { position: relative; z-index: 1000; }
 	animation: arrival-flash $duration ease-out 1;
 }
 @keyframes arrival-flash {
-	0%, 88% { opacity: 0; transform: translate(-50%,-50%) scale(.2); }
-	90% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-	96% { opacity: .5; transform: translate(-50%,-50%) scale(1.5); }
+	0%, 91% { opacity: 0; transform: translate(-50%,-50%) scale(.2); }
+	93% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+	97% { opacity: .5; transform: translate(-50%,-50%) scale(1.5); }
 	100% { opacity: 0; transform: translate(-50%,-50%) scale(2); }
 }
 // ondas expansivas
@@ -384,8 +385,8 @@ nav { position: relative; z-index: 1000; }
 }
 .arrival__ring--2 { animation-delay: .25s; border-color: rgba(255,240,200,.8); }
 @keyframes arrival-ring {
-	0%, 89% { opacity: 0; transform: translate(-50%,-50%) scale(.1); }
-	91% { opacity: .95; }
+	0%, 92% { opacity: 0; transform: translate(-50%,-50%) scale(.1); }
+	94% { opacity: .95; }
 	100% { opacity: 0; transform: translate(-50%,-50%) scale(3.2); }
 }
 // chispas que salen disparadas

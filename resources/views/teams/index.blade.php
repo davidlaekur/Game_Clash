@@ -6,7 +6,7 @@
 @php
     $myTeam = auth()->user()->team;
     $teamMod = $myTeam
-        ? (str_contains(strtolower($myTeam->name), 'mordor') ? 'mordor' : (str_contains(strtolower($myTeam->name), 'laraveland') ? 'laraveland' : 'neutral'))
+        ? (str_contains(strtolower($myTeam->name), 'laraveland') ? 'laraveland' : (str_contains(strtolower($myTeam->name), 'itaca') ? 'itaca' : 'neutral'))
         : 'neutral';
 @endphp
 

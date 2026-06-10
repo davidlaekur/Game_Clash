@@ -22,7 +22,7 @@
                 <span class="epic-hud__role">{{ ucfirst($u->role->name) }}</span>
                 @php
                     $teamName = $u->team->name ?? null;
-                    $teamMod = $teamName ? (str_contains(strtolower($teamName), 'mordor') ? 'mordor' : (str_contains(strtolower($teamName), 'laraveland') ? 'laraveland' : 'none')) : 'none';
+                    $teamMod = $teamName ? (str_contains(strtolower($teamName), 'laraveland') ? 'laraveland' : (str_contains(strtolower($teamName), 'itaca') ? 'itaca' : 'none')) : 'none';
                 @endphp
                 <span class="epic-hud__team epic-hud__team--{{ $teamMod }}">{{ $teamName ?? 'Sin equipo' }}</span>
             </span>

@@ -33,7 +33,7 @@
 
     /* equipos */
     --team-laraveland: #d8362e;
-    --team-mordor:     #1f1f24;
+    --team-itaca:      #34327e;
     --neutral:         #8a8a78;
 
     /* feedback */
@@ -120,7 +120,7 @@ h1, h2, h3, .h-display {
 }
 .chip--brass   { background: var(--brass-light); color: var(--wood-dark); border-color: var(--brass-dark); }
 .chip--team-laraveland { background: var(--team-laraveland); }
-.chip--team-mordor     { background: #2a2a30; }
+.chip--team-itaca      { background: #34327e; }
 .chip--neutral         { background: rgba(138,138,120,.6); }
 
 /* contenedor principal del juego */

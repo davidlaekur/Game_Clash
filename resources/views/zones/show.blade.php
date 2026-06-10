@@ -6,7 +6,7 @@
 @php
     $teamName = $zone->team->name ?? null;
     $teamMod = $teamName
-        ? (str_contains(strtolower($teamName), 'mordor') ? 'mordor' : (str_contains(strtolower($teamName), 'laraveland') ? 'laraveland' : 'neutral'))
+        ? (str_contains(strtolower($teamName), 'laraveland') ? 'laraveland' : (str_contains(strtolower($teamName), 'itaca') ? 'itaca' : 'neutral'))
         : 'neutral';
 @endphp
 

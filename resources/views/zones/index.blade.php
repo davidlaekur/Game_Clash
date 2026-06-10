@@ -9,7 +9,7 @@
     $factionOf = function ($name) {
         $n = strtolower($name ?? '');
         if (str_contains($n, 'laraveland')) return 'laraveland';
-        if (str_contains($n, 'itaca') || str_contains($n, 'mordor')) return 'itaca';
+        if (str_contains($n, 'itaca')) return 'itaca';
         return 'neutral';
     };
     $mapZones = $zones->map(function ($zone) use ($myTeamId, $factionOf) {
@@ -95,12 +95,6 @@
     <div class="warmap-layout">
         <div class="warmap-stage-wrap">
             <div data-react-island="WarMap" data-props='@json($warmapProps)'></div>
-            <div class="warmap-legend">
-                <span><i class="legend-dot chip--neutral"></i> Neutral</span>
-                <span><i class="legend-dot chip--team-laraveland"></i> Laraveland</span>
-                <span><i class="legend-dot chip--team-mordor"></i> Mordor</span>
-                <span>🛡 Defensa · ★ Tu posición</span>
-            </div>
         </div>
 
         <aside class="warmap-side">
