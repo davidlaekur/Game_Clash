@@ -1,9 +1,11 @@
 @use "sass:color";
-@use "sass:math"; 
-
+@use "sass:math";
 
 /*******************************************************************/
-/* Animacion no realizada por mi, solo unos cambios para adaptarla */
+/* Intro de aventura.                                              */
+/* Nave: x-wing + BB-8 (base CodePen).                             */
+/* Entorno propio: estrellas, salto a la luz, planetas y un        */
+/* planeta destino procedural (SVG feTurbulence) — obra maestra.   */
 /*******************************************************************/
 
 $duration: 19s;
@@ -13,85 +15,53 @@ html, body { height: 100%; width: 100%; }
 body {
 	text-align: center;
 	overflow: hidden;
-	opacity: 1;
-	background-color: lighten(black, 4%);
+	background:
+		radial-gradient(circle at 50% 40%, #0e1430 0%, #070b1d 48%, #03040a 100%);
 }
 
-nav {
-    position: relative;
-    z-index: 1000;
-}
+nav { position: relative; z-index: 1000; }
 
-.scene,
-.space { 
-	animation: fadeIn 3s 1 linear;
-}
+.space, .lightspeed { animation: fadeIn 3s 1 linear; }
+.lightspeed, .space, .planet { pointer-events: none; }
 
-.hyperspace, .scene, .space {
-    pointer-events: none; 
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 // *
-// ---------- star blur ------------- //
+// ---------- estrellas tranquilas que titilan (tramo de travesía) ------------- //
 // *
-
-@for $i from 1 through 144 {
-	$d: $i * 2.5;
-	$r: random(4) * .005;
-	$p: random(6) * 10% + 100% - 20;
-	@keyframes star-blur-#{$i} {
-		0% { transform: rotate(#{$d}deg) perspective(3vh) 
-			rotateX(15deg) translateY(0) scaleY(.1); }
-		12% { transform: rotate(#{$d}deg) perspective(3vh) 
-				rotateX(15deg) translateY($p) scaleY(1); }
-		44% { transform: rotate(#{$d}deg) perspective(3vh) 
-			    rotateX(15deg) translateY(7vh) scaleY(1); }
-		46% { transform: rotate(#{$d}deg) perspective(2vh)
-			    rotateX(15deg) translateY(.5vh) scaleY(1); }
-		55% { transform: rotate(#{$d}deg) perspective(2vh)
-			rotateX(15deg) translateY($p) scaleY(.7); }
-		100% { transform: rotate(#{$d}deg) perspective(2vh) 
-			rotateX(15deg) translateY(7vh) scaleY(1); }
-	}
+.stars-inner {
+	position: absolute; inset: 0;
+	animation: stars-drift $duration linear; // leve deriva: sensación de avance
 }
-
- 
-// *
-// ---------- stars ------------- //
-// *
-
+@keyframes stars-drift {
+	from { transform: translateX(0) scale(1); }
+	to { transform: translateX(-8%) scale(1.06); }
+}
 .star {
 	position: absolute;
-	top: 50%;
-	left: 50%;
 	border-radius: 50%;
-	background-color: white;
-	filter: blur(.1px);
-	@for $i from 1 through 144 {
+	background-color: #fff;
+	@for $i from 1 through 100 {
 		&:nth-child(#{$i}) {
-			top: 50%;
-			left: 50%;
-			z-index: 9;
-			width: 2px;
-			height: 6vh + random(3) / 2;
-			border: 1px solid rgba(blue, random(2) * .05 + .3);
-			animation: star-blur-#{$i} $duration ease-in-out;
-			transform-origin: top center;
-			transform: rotate(#{$i * 2.5}deg) 
-								 perspective(10vh) 
-								 rotateX(15deg) 
-								 translateY(30vh + random(5));
-			@if random(4) == 4 {
-				display: none;
-			}
+			top: math.div(random(1000), 10) * 1%;
+			left: math.div(random(1000), 10) * 1%;
+			$s: if(random(5) == 5, 2.4px, if(random(2) == 2, 1.8px, 1.2px));
+			width: $s; height: $s;
+			opacity: math.div(random(70), 100) + .3;
+			box-shadow: 0 0 4px rgba(180, 210, 255, .8);
+			animation: twinkle (1.6s + math.div(random(2600), 1000) * 1s) ease-in-out infinite;
+			animation-delay: math.div(random(2400), 1000) * -1s;
 		}
 	}
 }
+@keyframes twinkle {
+	0%, 100% { opacity: .3; }
+	50% { opacity: 1; }
+}
 
 // *
-// ---------- bb unit ------------- //
+// ---------- BB-8 dentro de la nave (CodePen) ------------- //
 // *
-
 .bb-unit {
 	position: absolute;
 	height: 2.15vh; width: 2.5vh;
@@ -105,7 +75,6 @@ nav {
 	transform: rotate(-1deg);
 	animation: bb-swivel $duration ease-out 1;
 }
-
 @keyframes bb-swivel {
 	0% { background-position: 40% center; }
 	3% { background-position: 40% center; }
@@ -118,14 +87,12 @@ nav {
 	35% { background-position: 10% center; }
 	39% { background-position: 10% center; }
 	40% { background-position: 60% center; }
-	// <head shake>
 	52% { background-position: 37% center; }
 	53% { background-position: 63% center; }
 	54% { background-position: 39% center; }
 	55% { background-position: 60% center; }
 	56% { background-position: 36% center; }
 	57% { background-position: 62% center; }
-	// </head shake>
 	66% { background-position: 62% center; }
 	67% { background-position: 45% center; }
 	70% { background-position: 45% center; }
@@ -134,16 +101,13 @@ nav {
 }
 
 // *
-// -------- x-wing thrusters ---------- //
+// ---------- motores del x-wing (CodePen) ------------- //
 // *
-
 .thruster-flicker {
 	opacity: 0.5;
-	width: 100%;
-	height: 100%;
+	width: 100%; height: 100%;
 	animation: flicker 0.025s linear infinite;
 }
-
 @keyframes flicker {
 	0% { transform: scale(1); }
 	20% { transform: scale(1.07); }
@@ -153,21 +117,19 @@ nav {
 	85% { transform: scale(1.05); }
 	100% { transform: scale(1); }
 }
-
 .thruster {
 	position: absolute;
 	border-radius: 50%;
 	height: 2.8vh; width: 2.8vh;
 	max-height: 13px; max-width: 13px;
-	background-color: white; 
-	box-shadow: 0 0 8px 3px red;
+	background-color: white;
+	box-shadow: 0 0 8px 3px #4aa3ff;
 	animation: thrusters $duration ease-out 1;
 	&.t1 { top: 42%; left: 35%; }
 	&.t2 { top: 41.5%; left: 64.5%; }
 	&.t3 { top: 80.5%; left: 63%; }
 	&.t4 { top: 81.5%; left: 36.5%; }
 }
-
 @keyframes thrusters {
 	0% { transform: scale(2.25); }
 	15% { transform: scale(0.8); }
@@ -180,15 +142,13 @@ nav {
 }
 
 // *
-// ---------- x-wing ------------- //
+// ---------- el x-wing (CodePen) ------------- //
 // *
-
 .x-wing {
 	opacity: 1;
 	position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(0deg) scale(0);
+	top: 50%; left: 50%;
+	transform: translate(-50%, -50%) rotate(0deg) scale(0);
 	z-index: 9999;
 	height: 41vh; width: 80vh;
 	max-height: 205px; max-width: 400px;
@@ -196,245 +156,380 @@ nav {
 	background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/x-wing.png);
 	animation: flightplan $duration ease-in-out 1;
 }
-
 @keyframes flightplan {
-	0% {
-		transform: 
-			translate(-45%, 50%) 
-			rotate(20deg) 
-			scale(3);
-			opacity: 0;
-	}
+	0% { transform: translate(-45%, 50%) rotate(20deg) scale(3); opacity: 0; }
 	2% { opacity: 1; }
-	15% {
-		transform: 
-			translate(-25%, -10%) 
-			rotate(-40deg) 
-			scale(0.5);
-	}
-	30% {
-	transform:
-		translate(-70%, 0%) 
-		rotate(28deg) 
-		scale(1);
-	}
-	47% {
-	transform: 
-		translate(-20%, -20%) 
-		rotate(-25deg) 
-		scale(0.75);		
-	}
-	53% {
-	transform: 
-		translate(-8%, -17%) 
-		rotate(-28deg) 
-		scale(1.11);			
-	}
-	90% {
-		transform: 
-			translate(-80%, -50%)  
-			rotate(25deg) 
-			scale(0);
-	}
-	90% {
-	transform: 
-			translate(-80%, -50%)
-			rotate(25deg) 
-			scale(0);
-	}
+	15% { transform: translate(-25%, -10%) rotate(-40deg) scale(0.5); }
+	30% { transform: translate(-70%, 0%) rotate(28deg) scale(1); }
+	47% { transform: translate(-20%, -20%) rotate(-25deg) scale(0.75); }
+	53% { transform: translate(-8%, -17%) rotate(-28deg) scale(1.11); }
+	// barrido lateral: cruza de un lado a otro
+	66% { transform: translate(30%, 5%) rotate(18deg) scale(0.9); }
+	76% { transform: translate(-55%, -10%) rotate(-12deg) scale(0.6); }
+	// enfila el planeta (arriba-centro) y se adentra encogiendo
+	88% { transform: translate(-50%, -72%) rotate(-16deg) scale(0.2); opacity: 1; }
+	95% { transform: translate(-50%, -86%) rotate(-12deg) scale(0.04); opacity: .7; }
+	100% { transform: translate(-50%, -90%) rotate(-12deg) scale(0); opacity: 0; }
 }
-
-// *
-// ------ planet & x-wing wrapper --------- //
-// *
 
 .subspace {
 	z-index: 500;
-	width: 300px;
-	height: 300px;
+	width: 300px; height: 300px;
 	position: absolute;
-	margin-top: -150px;
-	top: 50%;
-	margin-left: -150px;
-	left: 50%;
+	margin-top: -150px; top: 50%;
+	margin-left: -150px; left: 50%;
 }
 
 // *
-// --------------- planet ---------------- //
+// ---------- planeta destino procedural (obra maestra) ------------- //
 // *
-
-.hosnian-prime {
- position: absolute;
- top: 50%;
- left: 50%;
- left: 0; right: 0;
- margin: -35vh auto 0;
- z-index: 8;
- background-image: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/hosnian.jpg');
-  width: 75vh; max-width: 368px;
-  height: 75vh; max-height: 368px;
-  box-shadow:
-		inset 175px 0 80px 3px rgba(0,0,0,.6),
-		inset 75px 0 80px 3px rgba(0,0,0,.2),
-		inset -2px 0 50px 15px rgba(255,255,255,.5),
-		inset -2px 0 15px 2px rgba(255,255,255,1),
-		0 0 55px 10px rgba(blue, 0.45),
-		3px 0 10px 2px rgba(blue, 0.75),
-		-3px 0 10px 2px rgba(color.adjust(blue, $saturation: -75%), 0.75);
-  background-size: 602px;
-  border-radius: 50%;
-  position: relative;
-	transform: scale(1) translateY(0px);
-  animation-name: rotate, planet-zoom;
-  animation-duration: 80s, $duration;
-  animation-iteration-count: infinite, 1;
-  animation-timing-function: linear, ease-out;
+.planet {
+	position: absolute;
+	top: 50%; left: 50%;
+	width: 75vh; max-width: 380px;
+	height: 75vh; max-height: 380px;
+	margin: -35vh auto 0;
+	left: 0; right: 0;
+	z-index: 8;
+	transform: scale(1) translateY(0);
+	animation: planet-zoom $duration ease-out 1;
+	filter: drop-shadow(0 0 46px rgba(70, 140, 230, .5));
 }
-
-@keyframes rotate {
-  0% { background-position: 0px; }
-  100% { background-position: 602px; }
+.planet__svg { display: block; width: 100%; height: 100%; overflow: visible; }
+// rotación de la superficie: las bandas/tormentas pasan lateralmente
+.planet__spin { animation: planet-spin 26s linear infinite; }
+@keyframes planet-spin {
+	from { transform: translateX(0); }
+	to { transform: translateX(-110px); }
 }
-
+// llegada: aparece tras el salto y crece hacia nosotros (del CodePen)
 @keyframes planet-zoom {
-	0% { transform: scale(.01) translateY(0px); opacity: 0; }
-	50% { transform: scale(.2) translateY(0px); opacity: 0; }
-	51% { opacity: 1; }
-	52% { transform: scale(.8) translateY(0px); }
-	100% { transform: scale(1) translateY(0px); }
+	0%, 56% { transform: scale(.02) translateY(0); opacity: 0; }
+	58% { opacity: 1; transform: scale(.12) translateY(0); }
+	72% { transform: scale(.35) translateY(0); }
+	88% { transform: scale(.72) translateY(0); }
+	100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
 // *
-// ----- space positioning / zoom ------ //
+// ---------- salto a la velocidad de la luz (nuestra versión) ------------- //
 // *
-
-.space {
-	display: absolute;
-	top:0;right:0;bottom:0;left:0;
-	width: 100%;height:100%;
-	background-position: 50% 50%;
-	animation: space-zoom $duration 1 ease;
+.lightspeed {
+	position: absolute; inset: 0;
+	z-index: 7;
 	opacity: 0;
+	animation: lightspeed-phase $duration linear 1;
 }
-
-@keyframes space-zoom {
-	0% { opacity: 0; }
-	4% { opacity: 0; }
-	5% { opacity: 1; }
-	11% { opacity: 1; }
-	12% { opacity: 0; }
-	47% { opacity: 0; }
-	48% { opacity: 1; }
-	49% { opacity: 1; }
+.lightspeed__core {
+	position: absolute; top: 50%; left: 50%;
+	width: 30vh; height: 30vh;
+	transform: translate(-50%, -50%);
+	background: radial-gradient(circle, rgba(220,240,255,.9), rgba(120,180,255,.35) 35%, transparent 65%);
+	filter: blur(4px);
+	animation: core-pulse .8s ease-in-out infinite;
+}
+@keyframes core-pulse {
+	0%, 100% { opacity: .55; transform: translate(-50%,-50%) scale(.85); }
+	50% { opacity: 1; transform: translate(-50%,-50%) scale(1.15); }
+}
+.streak {
+	position: absolute;
+	top: 50%; left: 50%;
+	width: 2px; height: 3px;
+	border-radius: 2px;
+	transform-origin: top center;
+	@for $i from 1 through 180 {
+		&:nth-child(#{$i}) {
+			$ang: $i * 2deg;
+			$hue: 195 + (random(60) - 30);
+			background: linear-gradient(180deg, hsla($hue, 100%, 85%, 0), hsla($hue, 100%, 88%, .95));
+			transform: rotate($ang) translateY(6vh);
+			animation: streak-out (.4s + math.div(random(500), 1000) * 1s) linear infinite;
+			animation-delay: math.div(random(1400), 1000) * -1s;
+		}
+	}
+}
+@keyframes streak-out {
+	0% { height: 2px; opacity: 0; }
+	15% { opacity: 1; }
+	100% { height: 75vh; opacity: 0; }
+}
+.lightspeed__flash {
+	position: absolute; inset: 0;
+	background: radial-gradient(circle at 50% 50%, rgba(235,248,255,.95), rgba(150,200,255,.4) 38%, transparent 65%);
+	opacity: 0;
+	animation: ls-flash $duration ease-out 1;
+}
+// el salto ocupa la travesía media de la animación
+// el salto ocupa el tramo medio (tras la travesía tranquila)
+@keyframes lightspeed-phase {
+	0%, 31% { opacity: 0; }
+	35% { opacity: 1; }
+	53% { opacity: 1; }
+	57% { opacity: 0; }
+	100% { opacity: 0; }
+}
+@keyframes ls-flash {
+	0%, 31% { opacity: 0; }
+	35% { opacity: 1; }   // fogonazo de entrada al salto
+	40% { opacity: 0; }
 	53% { opacity: 0; }
+	56% { opacity: .9; }  // fogonazo de salida
+	60% { opacity: 0; }
 	100% { opacity: 0; }
 }
 
 // *
-// ---------- hyperspace ------------- //
+// ---------- campo de estrellas / espacio ------------- //
 // *
-
-
-.scene{
-  display: inline-block;
-  vertical-align: middle;
-  perspective: 5px;
-  perspective-origin: 50% 50%;
-  position: relative;
-}
-
-.wrap{
-  position: absolute;
-  width: 1000px;
-  height: 1000px;
-  left: -500px;
-  top: -500px;
-  transform-style: preserve-3d;
-  animation: move 12s infinite linear;
-  animation-fill-mode: forwards;
-}
-
-.wrap:nth-child(2){
-  animation: move 12s infinite linear;
-  animation-delay: 6s;
-}
-
-.wall {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  opacity: 0;
-  animation: fade 12s infinite linear;
-  animation-delay: 0;
-}
-
-.wrap:nth-child(2) .wall {
-  animation-delay: 6s;
-}
-
-.wall-right {
-  transform: rotateY(90deg) translateZ(500px);
-}
-
-.wall-left {
-  transform: rotateY(-90deg) translateZ(500px);
-}
-
-.wall-top {
-  transform: rotateX(90deg) translateZ(500px);
-}
-
-.wall-bottom {
-  transform: rotateX(-90deg) translateZ(500px);
-}
-
-.wall-back {
-  transform: rotateX(180deg) translateZ(500px);
-}
-
-@keyframes move {
-  0%{
-    transform: translateZ(-500px) rotate(0deg);
-  }
-  100%{
-    transform: translateZ(500px) rotate(0deg);
-  }
-}
-
-@keyframes fade {
-  0%{ opacity: 0; }
-  25% { opacity: 1; }  
-  75% { opacity: 1; }
-  100%{ opacity: 0; }
-}
-
-.wall {
-  background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/436243/Hyperspacetunnel.png');
-  background-size: cover;
-}
-
-.hyperspace {
-	width: 100%; height: 100%;
+.space {
 	position: absolute;
-	transform-origin: 50% 50%;
-	animation: hyperRotate 25s infinite linear;
-}
-
-@keyframes hyperRotate {
-	0% { transform: rotateZ(0deg); }
-	100% { transform: rotateZ(360deg); }
-}
-
-.scene {
-	animation: exitHyperspace $duration ease;
+	inset: 0;
+	width: 100%; height: 100%;
+	background-position: 50% 50%;
 	opacity: 0;
+	animation: space-zoom $duration 1 ease;
+}
+@keyframes space-zoom {
+	0% { opacity: 0; }
+	4% { opacity: 0; }
+	5% { opacity: 1; }
+	100% { opacity: 1; }
 }
 
-@keyframes exitHyperspace {
-	0% { opacity: 0; transform: translateY(50vh) scale(.25); }
-	7% { opacity: 0; transform: translateY(50vh) scale(.25); }
-	10% { opacity: 1; transform: translateY(50vh) scale(3); }
-	47% { opacity: 1; transform: translateY(50vh) scale(3); }
-	48% { opacity: 0; transform: translateY(50vh) scale(.25); }
-	100% { transform: translateY(50vh) scale(.25); }
+// *
+// ---------- planetas de fondo (travesía) ------------- //
+// *
+.far-planets { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.far-planet {
+	position: absolute;
+	border-radius: 50%;
+	opacity: 0;
+	animation: far-planet-pass $duration ease-in 1;
 }
+.far-planet--blue {
+	top: 22%; left: 15%; width: 70px; height: 70px;
+	background:
+		radial-gradient(30% 18% at 60% 40%, rgba(190,225,255,.4), transparent 70%),
+		radial-gradient(circle at 35% 30%, #bfe2ff, #4a8fd6 48%, #1f4f8f 72%, #0a2440 100%);
+	box-shadow: inset 18px 0 24px rgba(0,0,0,.5), inset -4px 0 12px rgba(200,230,255,.4), 0 0 22px 4px rgba(80,150,255,.32);
+	animation-delay: .2s;
+}
+.far-planet--ringed {
+	top: 64%; left: 80%; width: 56px; height: 56px;
+	background: radial-gradient(circle at 36% 30%, #cdb6f0, #7a5ec4 52%, #2e2154 100%);
+	box-shadow: inset 14px 0 18px rgba(0,0,0,.5), 0 0 16px 3px rgba(150,120,220,.3);
+	animation-delay: .9s;
+}
+.far-planet--ringed::after {
+	content: ""; position: absolute; top: 50%; left: 50%;
+	width: 118px; height: 30px;
+	transform: translate(-50%,-50%) rotate(-20deg);
+	border-radius: 50%;
+	border: 3px solid rgba(200,180,240,.5);
+	border-top-color: rgba(200,180,240,.12);
+}
+.far-planet--red {
+	top: 16%; left: 82%; width: 40px; height: 40px;
+	background: radial-gradient(circle at 38% 32%, #ffcf9e, #d9824a 48%, #8a3c20 74%, #3a160b 100%);
+	box-shadow: inset 10px 0 14px rgba(0,0,0,.5), 0 0 14px 3px rgba(230,140,80,.28);
+	animation-delay: 1.6s;
+}
+// pasan durante la travesía tranquila, antes del salto
+@keyframes far-planet-pass {
+	0%, 4% { opacity: 0; transform: translate(0,0) scale(.55); }
+	10% { opacity: .85; }
+	24% { opacity: .85; transform: translate(-5vw, 2vh) scale(1); }
+	30% { opacity: 0; transform: translate(-7vw, 3vh) scale(1.15); }
+	100% { opacity: 0; }
+}
+
+// *
+// ---------- efecto de llegada: pequeña explosión ------------- //
+// *
+.arrival {
+	position: absolute;
+	top: 30%; left: 50%;
+	transform: translate(-50%, -50%);
+	width: 0; height: 0;
+	z-index: 9998;
+	pointer-events: none;
+}
+// fogonazo central
+.arrival__flash {
+	position: absolute; top: 50%; left: 50%;
+	width: 120px; height: 120px;
+	transform: translate(-50%, -50%) scale(.2);
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(255,255,255,.95), rgba(180,220,255,.6) 30%, transparent 65%);
+	opacity: 0;
+	animation: arrival-flash $duration ease-out 1;
+}
+@keyframes arrival-flash {
+	0%, 88% { opacity: 0; transform: translate(-50%,-50%) scale(.2); }
+	90% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+	96% { opacity: .5; transform: translate(-50%,-50%) scale(1.5); }
+	100% { opacity: 0; transform: translate(-50%,-50%) scale(2); }
+}
+// ondas expansivas
+.arrival__ring {
+	position: absolute; top: 50%; left: 50%;
+	width: 40px; height: 40px;
+	transform: translate(-50%, -50%) scale(.1);
+	border-radius: 50%;
+	border: 3px solid rgba(190,225,255,.9);
+	box-shadow: 0 0 16px rgba(150,200,255,.7);
+	opacity: 0;
+	animation: arrival-ring $duration ease-out 1;
+}
+.arrival__ring--2 { animation-delay: .25s; border-color: rgba(255,240,200,.8); }
+@keyframes arrival-ring {
+	0%, 89% { opacity: 0; transform: translate(-50%,-50%) scale(.1); }
+	91% { opacity: .95; }
+	100% { opacity: 0; transform: translate(-50%,-50%) scale(3.2); }
+}
+// chispas que salen disparadas
+.arrival__sparks {
+	position: absolute; top: 50%; left: 50%;
+	width: 0; height: 0;
+}
+.arrival__spark {
+	position: absolute; top: 0; left: 0;
+	width: 3px; height: 14px;
+	border-radius: 2px;
+	background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(120,190,255,0));
+	transform-origin: top center;
+	opacity: 0;
+	@for $i from 1 through 12 {
+		&:nth-child(#{$i}) {
+			transform: rotate(#{$i * 30}deg) translateY(0);
+			animation: arrival-spark $duration ease-out 1;
+		}
+	}
+}
+@keyframes arrival-spark {
+	0%, 89% { opacity: 0; height: 4px; }
+	91% { opacity: 1; }
+	100% { opacity: 0; height: 26px; }
+}
+
+// *
+// ---------- llamarada de la tobera central (impulso al hiperespacio) ------------- //
+// *
+// va dentro de .x-wing, así rota y se mueve con la nave. Sale del centro
+// hacia atrás durante ~3s, cuando la nave acelera al salto.
+.boost-flame {
+	position: absolute;
+	top: 48%; left: 50%;
+	width: 11%; height: 62%;
+	transform: translate(-50%, 0) scaleY(0);
+	transform-origin: top center;
+	z-index: -1;
+	background:
+		radial-gradient(50% 32% at 50% 8%, rgba(255,255,255,.95), transparent 70%),
+		linear-gradient(180deg, rgba(220,245,255,.95) 0%, rgba(120,200,255,.85) 35%, rgba(60,140,255,.5) 70%, rgba(40,110,230,0) 100%);
+	border-radius: 50% 50% 48% 48% / 18% 18% 90% 90%;
+	filter: blur(2.5px);
+	opacity: 0;
+	animation: boost-flame $duration ease-out 1, boost-flicker .05s linear infinite;
+}
+@keyframes boost-flame {
+	0%, 30% { opacity: 0; transform: translate(-50%, 0) scaleY(0); }
+	33% { opacity: 1; transform: translate(-50%, 0) scaleY(1.05); }
+	44% { opacity: 1; transform: translate(-50%, 0) scaleY(1); }
+	47% { opacity: 0; transform: translate(-50%, 0) scaleY(.2); }
+	100% { opacity: 0; transform: translate(-50%, 0) scaleY(0); }
+}
+@keyframes boost-flicker {
+	0%, 100% { filter: blur(2.5px) brightness(1); }
+	50% { filter: blur(3.6px) brightness(1.25); }
+}
+
+// *
+// ---------- rótulo de marca: World of Laraveland ------------- //
+// *
+.intro-brand {
+	position: absolute;
+	top: 50%; left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 9990;
+	text-align: center;
+	pointer-events: none;
+	opacity: 0;
+	animation: brand-show $duration ease-out 1;
+}
+.intro-brand__crest {
+	display: block;
+	font-size: 3.2rem;
+	color: var(--brass-light, #f1d27a);
+	text-shadow: 0 0 22px rgba(241,210,122,.7);
+	margin-bottom: .6rem;
+}
+.intro-brand__title {
+	font-family: 'Cinzel', serif; font-weight: 900;
+	letter-spacing: .06em;
+	font-size: clamp(2rem, 6vw, 3.6rem);
+	color: #f4ecd6;
+	text-shadow: 0 2px 14px rgba(0,0,0,.8), 0 0 30px rgba(120,170,255,.35);
+	margin: 0;
+}
+.intro-brand__title span { color: var(--brass-light, #f1d27a); }
+.intro-brand__sub {
+	font-family: 'MedievalSharp', cursive;
+	color: #b8c4dd;
+	letter-spacing: .25em;
+	font-size: clamp(.8rem, 2vw, 1.1rem);
+	margin: .5rem 0 0;
+	text-transform: uppercase;
+}
+// aparece con un leve acercamiento y se desvanece antes del salto
+@keyframes brand-show {
+	0% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); letter-spacing: .3em; }
+	10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+	16% { opacity: 1; }
+	22% { opacity: 0; transform: translate(-50%, -50%) scale(.92); }
+	100% { opacity: 0; }
+}
+
+// *
+// ---------- compañía del destino (aproximación) ------------- //
+// *
+// lunas/planetas que aparecen tras el salto y derivan con paralaje,
+// para que el planeta de la aventura no llegue solo a la escena.
+.approach { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+.approach-planet {
+	position: absolute;
+	border-radius: 50%;
+	opacity: 0;
+	animation: approach-pass $duration ease-in 1;
+}
+.approach-planet--moon {
+	top: 30%; left: 70%; width: 46px; height: 46px;
+	background:
+		radial-gradient(28% 16% at 60% 40%, rgba(230,240,255,.5), transparent 70%),
+		radial-gradient(circle at 38% 32%, #d6dde8, #8d99ab 50%, #4a5364 78%, #232a36 100%);
+	box-shadow: inset 12px 0 16px rgba(0,0,0,.55), 0 0 12px 2px rgba(180,200,230,.25);
+	animation-delay: .4s;
+}
+.approach-planet--far {
+	top: 64%; left: 24%; width: 70px; height: 70px;
+	background:
+		radial-gradient(circle at 36% 30%, #ffe3c2, #e09a5a 48%, #9c5a2c 76%, #3e2412 100%);
+	box-shadow: inset 18px 0 22px rgba(0,0,0,.55), 0 0 16px 3px rgba(230,160,90,.25);
+	animation-delay: 1.2s;
+}
+.approach-planet--small {
+	top: 20%; left: 30%; width: 28px; height: 28px;
+	background: radial-gradient(circle at 38% 32%, #c8f0e0, #4fb39a 52%, #1d5e52 100%);
+	box-shadow: inset 8px 0 12px rgba(0,0,0,.5), 0 0 12px 2px rgba(90,210,180,.25);
+	animation-delay: 2s;
+}
+// aparecen lejanas y crecen/derivan al acercarnos (paralaje de aproximación)
+@keyframes approach-pass {
+	0%, 56% { opacity: 0; transform: translate(0,0) scale(.2); }
+	62% { opacity: .9; }
+	100% { opacity: .9; transform: translate(var(--dx, -8vw), var(--dy, 6vh)) scale(2.6); }
+}
+.approach-planet--moon  { --dx: 10vw;  --dy: -7vh; }
+.approach-planet--far   { --dx: -12vw; --dy: 8vh; }
+.approach-planet--small { --dx: -8vw;  --dy: -6vh; }
