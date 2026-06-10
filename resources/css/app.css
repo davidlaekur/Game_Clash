@@ -281,6 +281,21 @@ body {
     box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* Icono World of Laraveland */
+.btn-spaceship {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-spaceship i {
+    font-size: 24px;
+    color: var(--wood-dark, #3d2713);
+    text-shadow: 0 0 8px rgba(61,39,19,.4);
+}
+
 
 
 

@@ -108,7 +108,10 @@
                 </div>
                 <p class="side-head__sub">El Reino de Laraveland · {{ $zones->count() }} territorios en disputa</p>
                 @if(auth()->user()->role->name !== 'Admin')
-                    <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta">⚔ Iniciar / Continuar Aventura</a>
+                    <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta btn-spaceship" id="adventure-btn">
+                        <i class="fas fa-jedi"></i>
+                        Iniciar / Continuar Aventura
+                    </a>
                 @else
                     <form action="{{ route('import.zones') }}" method="POST">
                         @csrf
@@ -177,6 +180,24 @@
 </div>
 
 <script>
+    // Audio countdown antes de ir a aventura
+    document.getElementById('adventure-btn')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        const url = this.href;
+        
+        const audio = new Audio('/audio/prepare-space.wav');
+        audio.play();
+        
+        audio.onended = () => {
+            window.location.href = url;
+        };
+        
+        // Fallback si no funciona el audio
+        setTimeout(() => {
+            window.location.href = url;
+        }, 7000);
+    });
+    
     // cuenta atrás en vivo de las acciones del panel lateral
     document.querySelectorAll('.side-action[data-remaining]').forEach(function (el) {
         let s = parseInt(el.dataset.remaining || '0', 10);
