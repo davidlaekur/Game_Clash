@@ -3,9 +3,6 @@
 
 /*******************************************************************/
 /* Intro de aventura.                                              */
-/* Nave: x-wing + BB-8 (base CodePen).                             */
-/* Entorno propio: estrellas, salto a la luz, planetas y un        */
-/* planeta destino procedural (SVG feTurbulence) — obra maestra.   */
 /*******************************************************************/
 
 $duration: 19s;
@@ -27,7 +24,7 @@ nav { position: relative; z-index: 1000; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 // *
-// ---------- estrellas tranquilas que titilan (tramo de travesía) ------------- //
+// --estrellas-- //
 // *
 .stars-inner {
 	position: absolute; inset: 0;
@@ -60,7 +57,7 @@ nav { position: relative; z-index: 1000; }
 }
 
 // *
-// ---------- BB-8 dentro de la nave (CodePen) ------------- //
+// ---------- BB-8 nave desde aws------------- //
 // *
 .bb-unit {
 	position: absolute;
@@ -101,7 +98,7 @@ nav { position: relative; z-index: 1000; }
 }
 
 // *
-// ---------- motores del x-wing (CodePen) ------------- //
+// ---------- motores  ------------- //
 // *
 .thruster-flicker {
 	opacity: 0.5;
@@ -142,7 +139,7 @@ nav { position: relative; z-index: 1000; }
 }
 
 // *
-// ---------- el x-wing (CodePen) ------------- //
+// ---------- el x-wing------------- //
 // *
 .x-wing {
 	opacity: 1;
@@ -181,7 +178,7 @@ nav { position: relative; z-index: 1000; }
 }
 
 // *
-// ---------- planeta destino procedural (obra maestra) ------------- //
+// ---------- planeta destino------------- //
 // *
 .planet {
 	position: absolute;
@@ -202,7 +199,7 @@ nav { position: relative; z-index: 1000; }
 	from { transform: translateX(0); }
 	to { transform: translateX(-110px); }
 }
-// llegada: aparece tras el salto y crece hacia nosotros (del CodePen)
+// llegada: aparece tras el salto y crece hacia nosotros 
 @keyframes planet-zoom {
 	0%, 56% { transform: scale(.02) translateY(0); opacity: 0; }
 	58% { opacity: 1; transform: scale(.12) translateY(0); }
@@ -212,7 +209,7 @@ nav { position: relative; z-index: 1000; }
 }
 
 // *
-// ---------- salto a la velocidad de la luz (nuestra versión) ------------- //
+// ---------- salto a la velocidad de la luz ------------- //
 // *
 .lightspeed {
 	position: absolute; inset: 0;
@@ -298,7 +295,7 @@ nav { position: relative; z-index: 1000; }
 }
 
 // *
-// ---------- planetas de fondo (travesía) ------------- //
+// ---------- planetas de fondo ------------- //
 // *
 .far-planets { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
 .far-planet {
@@ -534,21 +531,21 @@ nav { position: relative; z-index: 1000; }
 @keyframes crawl-phase {
 	0%, 4% { opacity: 0; }
 	9% { opacity: 1; }
-	27% { opacity: 1; }
-	32% { opacity: 0; }
+	42% { opacity: 1; }
+	47% { opacity: 0; }
 	100% { opacity: 0; }
 }
 // el texto asciende por el plano inclinado hacia el horizonte
 @keyframes crawl-scroll {
 	0% { transform: translateX(-50%) rotateX(38deg) translateY(20%); }
-	32% { transform: translateX(-50%) rotateX(38deg) translateY(-165%); }
+	47% { transform: translateX(-50%) rotateX(38deg) translateY(-165%); }
 	100% { transform: translateX(-50%) rotateX(38deg) translateY(-165%); }
 }
 
 // *
 // ---------- compañía del destino (aproximación) ------------- //
 // *
-// lunas/planetas que aparecen tras el salto y derivan con paralaje,
+// lunas/planetas que aparecen tras el salto,
 // para que el planeta de la aventura no llegue solo a la escena.
 .approach { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
 .approach-planet {
