@@ -300,6 +300,12 @@
 }
 
 /* caminos entre territorios vecinos */
+.warmap-links {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 1;
+}
 .warmap-links line {
     stroke: rgba(60,39,19,.55);
     stroke-width: 3;
@@ -412,31 +418,36 @@
 .warmap-marker__team--laraveland { color: #ff8a82; }
 .warmap-marker__team--itaca      { color: #9b98ff; }
 
-/* estrella "estás aquí" */
+/* pin "estás aquí" — flota sobre el medallón y rebota */
 .warmap-marker__here {
-    color: var(--brass-light);
-    font-size: 16px;
-    filter: drop-shadow(0 0 6px rgba(241,210,122,.95));
-    animation: wm-pulse 2s ease-in-out infinite;
+    position: absolute;
+    top: -22px; left: 50%;
+    z-index: 3;
+    color: #ff3b30;
+    font-size: 20px;
+    line-height: 1;
+    pointer-events: none;
+    filter:
+        drop-shadow(0 2px 2px rgba(0,0,0,.85))
+        drop-shadow(0 0 7px rgba(255,59,48,.95));
+    animation: wm-bob 1.1s ease-in-out infinite;
 }
 .warmap-marker.is-current .warmap-marker__pin {
     border-color: var(--brass-light);
     box-shadow: 0 3px 8px rgba(0,0,0,.6), 0 0 18px rgba(241,210,122,.9);
 }
-@keyframes wm-pulse {
-    0%,100% { transform: scale(1);   opacity: 1; }
-    50%     { transform: scale(1.25); opacity: .75; }
+@keyframes wm-bob {
+    0%,100% { transform: translateX(-50%) translateY(0);    }
+    50%     { transform: translateX(-50%) translateY(-6px); }
 }
 
 .warmap-hint {
-    position: absolute;
-    left: 0; right: 0; bottom: 10px;
-    text-align: center; margin: 0;
+    text-align: center;
+    margin: .55rem 0 0;
     font-family: 'MedievalSharp', cursive;
-    color: var(--parchment);
-    text-shadow: 0 1px 4px #000;
-    font-size: .95rem;
-    pointer-events: none;
+    color: var(--parchment-dark);
+    font-size: .9rem;
+    opacity: .85;
 }
 
 /* botones de zoom del mapa */
@@ -1213,7 +1224,7 @@ body.warmap-fullscreen-on { overflow: hidden; }
     .warmap-side { position: static; top: auto; }
     .warmap-controls { right: 10px; bottom: 12px; gap: 6px; }
     .warmap-controls button { width: 38px; height: 38px; font-size: 1.15rem; }
-    .warmap-hint { font-size: .78rem; bottom: 6px; padding: 0 .5rem; }
+    .warmap-hint { font-size: .78rem; padding: 0 .5rem; }
     .warmap-marker__pin { width: 46px; height: 46px; }
     .warmap-marker__icon { font-size: 21px; }
     .warmap-legend { gap: 8px 12px; font-size: .82rem; margin-top: .8rem; }
@@ -1239,13 +1250,20 @@ body.warmap-fullscreen-on { overflow: hidden; }
 /* ============================================================
    AUTENTICACIÓN (login / register) — tema épico
    ============================================================ */
+/* la página de auth ocupa el viewport exacto: header + escenario + footer */
+.game-main:has(.auth-stage) {
+    display: flex;
+    flex-direction: column;
+    max-width: none;
+    padding: 0;
+}
 .auth-stage {
     position: relative;
-    min-height: calc(100vh - 64px);
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2.5rem 1rem;
+    padding: 1.5rem 1rem;
     overflow: hidden;
 }
 .auth-stage__bg {
@@ -1264,24 +1282,25 @@ body.warmap-fullscreen-on { overflow: hidden; }
 /* tarjeta de pergamino con marco de latón */
 .auth-card {
     position: relative; z-index: 2;
-    width: 100%; max-width: 440px;
-    padding: 2.4rem 2.2rem 2rem;
+    width: 100%; max-width: 380px;
+    padding: 1.8rem 1.8rem 1.5rem;
     text-align: center;
-    border-radius: 16px;
-    background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(31,24,16,.93), rgba(22,17,10,.96));
+    backdrop-filter: blur(5px);
     border: 1px solid var(--line);
     box-shadow:
         0 0 0 2px var(--brass),
-        0 0 0 6px var(--wood-dark),
-        var(--shadow-2);
+        0 0 0 5px var(--wood-dark),
+        0 18px 50px rgba(0,0,0,.65);
 }
-.auth-card--wide { max-width: 560px; }
+.auth-card--wide { max-width: 520px; }
 
 .auth-card__crest {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 60px; height: 60px; margin-bottom: .6rem;
+    width: 52px; height: 52px; margin-bottom: .5rem;
     border-radius: 50%;
-    font-size: 1.7rem; color: var(--brass-light);
+    font-size: 1.45rem; color: var(--brass-light);
     background: radial-gradient(circle at 50% 40%, rgba(241,210,122,.18), rgba(0,0,0,.3));
     border: 1px solid var(--brass);
     box-shadow: 0 0 22px rgba(241,210,122,.35);
@@ -1291,27 +1310,35 @@ body.warmap-fullscreen-on { overflow: hidden; }
     letter-spacing: .03em;
     color: var(--brass-light);
     text-shadow: 0 2px 6px rgba(0,0,0,.7);
-    font-size: clamp(1.5rem, 3vw, 2rem);
-    margin: 0 0 .3rem;
+    font-size: clamp(1.3rem, 2.4vw, 1.65rem);
+    margin: 0 0 .25rem;
 }
 .auth-card__sub {
     font-family: var(--font-script); color: var(--parchment-dark);
-    margin: 0 0 1.4rem; font-size: 1rem;
+    margin: 0 0 1.2rem; font-size: .95rem;
+}
+/* filigrana separadora bajo el subtítulo */
+.auth-card__sub::after {
+    content: "";
+    display: block;
+    width: 150px; height: 1px;
+    margin: .8rem auto 0;
+    background: linear-gradient(90deg, transparent, var(--brass), transparent);
 }
 
 .auth-form { text-align: left; }
-.auth-field { margin-bottom: 1rem; }
+.auth-field { margin-bottom: .85rem; }
 .auth-field label {
-    display: block; margin-bottom: .35rem;
+    display: block; margin-bottom: .3rem;
     font-family: var(--font-display); font-weight: 600;
-    font-size: .85rem; color: var(--parchment-dark);
+    font-size: .82rem; color: var(--parchment-dark);
     letter-spacing: .03em;
 }
 .auth-field input,
 .auth-field select {
     width: 100%;
-    padding: .7rem .9rem;
-    font-family: var(--font-body); font-size: 1rem;
+    padding: .58rem .8rem;
+    font-family: var(--font-body); font-size: .95rem;
     color: var(--text);
     background: rgba(0,0,0,.35);
     border: 1px solid var(--line);
@@ -1332,17 +1359,17 @@ body.warmap-fullscreen-on { overflow: hidden; }
 
 .auth-check {
     display: flex; align-items: center; gap: .5rem;
-    margin: .2rem 0 1.2rem;
-    font-family: var(--font-display); font-size: .85rem; color: var(--parchment-dark);
+    margin: .2rem 0 1rem;
+    font-family: var(--font-display); font-size: .82rem; color: var(--parchment-dark);
     cursor: pointer;
 }
-.auth-check input { width: 16px; height: 16px; accent-color: var(--brass); }
+.auth-check input { width: 15px; height: 15px; accent-color: var(--brass); }
 
-.auth-submit { width: 100%; justify-content: center; font-size: 1.05rem; padding: .7rem; }
+.auth-submit { width: 100%; justify-content: center; font-size: 1rem; padding: .62rem; }
 
 .auth-foot {
-    margin: 1.3rem 0 0; text-align: center;
-    font-family: var(--font-body); color: var(--text-dim); font-size: .92rem;
+    margin: 1.1rem 0 0; text-align: center;
+    font-family: var(--font-body); color: var(--text-dim); font-size: .9rem;
 }
 .auth-foot a {
     color: var(--brass-light); font-family: var(--font-display); font-weight: 700;
@@ -1361,8 +1388,123 @@ body.warmap-fullscreen-on { overflow: hidden; }
     background: linear-gradient(180deg, var(--wood), var(--wood-dark));
     border-top: 3px solid var(--brass);
     color: var(--parchment-dark);
-    text-align: center; padding: 1.1rem 1rem;
+    text-align: center; padding: .7rem 1rem;
     font-family: var(--font-script);
+    font-size: .9rem;
 }
 .auth-footer p { margin: 0; }
 .auth-footer__sub { font-size: .85rem; opacity: .8; margin-top: .2rem; }
+
+/* móvil: la tarjeta respira por los lados y la escena llena la pantalla */
+@media (max-width: 480px) {
+    .auth-stage { padding: 1.2rem 1.1rem; }
+    .auth-card { max-width: 100%; padding: 1.5rem 1.25rem 1.3rem; }
+}
+
+/* ============================================================
+   NOTIFICACIONES (toast) — reemplaza los alert de Laravel
+   ============================================================ */
+.toast-stack {
+    position: fixed;
+    top: 88px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 4000;
+    display: flex; flex-direction: column; gap: .55rem;
+    width: min(560px, calc(100vw - 1.5rem));
+    pointer-events: none;
+}
+.toast {
+    pointer-events: auto;
+    display: flex; align-items: center; gap: .85rem;
+    padding: .8rem 1rem;
+    border-radius: 12px;
+    background: linear-gradient(180deg, rgba(31,24,16,.97), rgba(22,17,10,.98));
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brass);
+    box-shadow: 0 0 0 2px rgba(201,162,75,.5), 0 14px 36px rgba(0,0,0,.6);
+    color: var(--text);
+    font-family: var(--font-body);
+    animation: toast-in .35s cubic-bezier(.2,.8,.2,1);
+}
+.toast.is-leaving { animation: toast-out .3s forwards; }
+.toast__icon { font-size: 1.2rem; flex: 0 0 auto; }
+.toast__msg { margin: 0; flex: 1; font-size: .95rem; line-height: 1.35; }
+.toast__close {
+    background: none; border: 0; cursor: pointer;
+    color: var(--text-dim); font-size: 1.4rem; line-height: 1; padding: 0 .15rem;
+    transition: color .15s ease;
+}
+.toast__close:hover { color: var(--text); }
+
+.toast--success { border-left-color: #4caf6d; }
+.toast--success .toast__icon { color: #6fcf97; }
+.toast--error   { border-left-color: #d8362e; }
+.toast--error   .toast__icon { color: #ff8a82; }
+.toast--warning { border-left-color: #d9a441; }
+.toast--warning .toast__icon { color: #f1c761; }
+.toast--info    { border-left-color: #4a8fd6; }
+.toast--info    .toast__icon { color: #7db4ec; }
+
+@keyframes toast-in  { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(-12px); } }
+
+@media (max-width: 480px) {
+    .toast-stack { top: 74px; }
+    .toast__msg { font-size: .88rem; }
+}
+
+/* avisos inline (mensajes de página) — sustituye el estilo Bootstrap por el del tema */
+.alert {
+    margin: 0 0 1rem;
+    padding: .75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--brass);
+    background: linear-gradient(180deg, rgba(31,24,16,.92), rgba(22,17,10,.96));
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: .95rem;
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.alert-success { border-left-color: #4caf6d; }
+.alert-danger  { border-left-color: #d8362e; color: #ffd9d6; }
+.alert-warning { border-left-color: #d9a441; }
+.alert-info    { border-left-color: #4a8fd6; }
+
+/* ============================================================
+   COLOR SEMÁNTICO DE ICONOS (para que no salgan todos en latón)
+   ============================================================ */
+.fa-shield-alt        { color: #6ea8e0; }   /* defensa  · azul acero */
+.fa-khanda,
+.fa-fire              { color: #e8714a; }   /* ataque   · rojo/fuego */
+.fa-gem               { color: #5fd0e0; }   /* recursos · cian */
+.fa-trophy,
+.fa-medal             { color: #f1c761; }   /* premios  · oro */
+.fa-lightbulb         { color: #f4d35e; }   /* inventar · amarillo */
+.fa-scroll            { color: #cbb083; }   /* recetas  · pergamino */
+.fa-compass           { color: #6ec5a8; }   /* explorar · verde mar */
+.fa-walking           { color: #8fb0d6; }   /* mover    · azul */
+.fa-hammer            { color: #d29a5e; }   /* recolectar/forjar */
+.fa-box,
+.fa-box-open,
+.fa-chess-rook        { color: #c9a86a; }   /* inventario */
+.fa-map-marker-alt    { color: #e07a5f; }   /* ubicación */
+.fa-thumbtack         { color: #d6a14a; }
+.fa-dice              { color: #b9a0e0; }
+.fa-hourglass-half    { color: #cdb27e; }   /* tiempo */
+.fa-bolt              { color: #f1c761; }   /* acciones */
+.fa-gift              { color: #e08aa8; }
+.fa-question-circle,
+.fa-info-circle,
+.fa-sync-alt,
+.fa-exchange-alt      { color: #7db4ec; }
+.fa-plus              { color: #6fcf97; }
+.fa-pen               { color: #c9b27e; }
+.fa-power-off         { color: #d98a82; }
+.fa-check,
+.fa-check-circle      { color: #6fcf97; }   /* completado */
+.fa-hand-holding      { color: #d6b56a; }
+
+/* dentro de botones fuertes el icono sigue el color del botón (legibilidad) */
+.btn-action .fas,
+.btn-epic .fas        { color: inherit; }

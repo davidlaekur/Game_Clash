@@ -20,7 +20,7 @@
         </p>
     @else
         <p id="action-timer" class="action-timer action-timer--done">
-            ✅ Exploración completada. La zona pertenece a tu equipo.
+            <i class="fas fa-check-circle" aria-hidden="true"></i> Exploración completada. La zona pertenece a tu equipo.
         </p>
     @endif
 
@@ -40,7 +40,8 @@
                 clearInterval(timer);
                 const t = document.getElementById('action-timer');
                 t.classList.add('action-timer--done');
-                t.innerText = '✅ Exploración completada. La zona pertenece a tu equipo.';
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Exploración completada.';
+                setTimeout(() => { window.location.href = "{{ route('zones.show', $zone->id) }}"; }, 1200);
             }
         }, 1000);
     }

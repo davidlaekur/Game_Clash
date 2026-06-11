@@ -18,13 +18,13 @@
     @endif
 
     <div class="panel forge-block">
-        <h3 class="forge-block__title">🎒 Tu inventario</h3>
+        <h3 class="forge-block__title"><i class="fas fa-box-open" aria-hidden="true"></i> Tu inventario</h3>
         <table class="game-table">
             <thead><tr><th>Descripción</th><th>Cantidad</th></tr></thead>
             <tbody>
-                <tr><td>💎 Materiales almacenados</td><td>{{ Auth::user()->inventory->materials->sum('quantity') }} ud.</td></tr>
-                <tr><td>💡 Espacio por inventos</td><td>{{ Auth::user()->inventory->inventions->count() }} ud.</td></tr>
-                <tr><td>📦 Capacidad disponible</td><td>{{ $inventoryCapacity }} ud.</td></tr>
+                <tr><td><i class="fas fa-gem" aria-hidden="true"></i> Materiales almacenados</td><td>{{ Auth::user()->inventory->materials->sum('quantity') }} ud.</td></tr>
+                <tr><td><i class="fas fa-lightbulb" aria-hidden="true"></i> Espacio por inventos</td><td>{{ Auth::user()->inventory->inventions->count() }} ud.</td></tr>
+                <tr><td><i class="fas fa-box" aria-hidden="true"></i> Capacidad disponible</td><td>{{ $inventoryCapacity }} ud.</td></tr>
             </tbody>
         </table>
     </div>
@@ -34,7 +34,7 @@
         <input type="hidden" name="zone_id" value="{{ $zone->id }}">
 
         <div class="panel forge-block">
-            <h3 class="forge-block__title">⛏️ Materiales disponibles</h3>
+            <h3 class="forge-block__title"><i class="fas fa-hammer" aria-hidden="true"></i> Materiales disponibles</h3>
             <div class="forge-grid">
                 @foreach ($availableMaterials as $material)
                     <div class="collect-mat">
@@ -55,7 +55,7 @@
         </div>
 
         <div class="forge-submit">
-            <button type="submit" class="btn-epic" {{ isset($timeRemaining) && $timeRemaining > 0 ? 'disabled' : '' }}>📦 Confirmar recolección</button>
+            <button type="submit" class="btn-epic" {{ isset($timeRemaining) && $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-box" aria-hidden="true"></i> Confirmar recolección</button>
         </div>
     </form>
 </div>
@@ -70,7 +70,8 @@
                 clearInterval(timer);
                 const t = document.getElementById('timer');
                 t.classList.add('action-timer--done');
-                t.innerText = "✅ Recolección completada. Ya puedes actuar.";
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Recolección completada';
+                setTimeout(() => { window.location.href = "{{ route('zones.show', $zone->id) }}"; }, 1200);
             }
         }, 1000);
     }

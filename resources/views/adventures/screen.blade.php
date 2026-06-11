@@ -8,12 +8,6 @@
 <div class="adv-view">
     <h1 class="adv-view__title">Aventura en {{ $adventure->name }}</h1>
 
-    @if(session('success'))
-        <div class="alert alert-success">{!! session('success') !!}</div>
-    @elseif(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
     <div class="adv-grid">
         {{-- Escenario --}}
         <div class="panel panel--framed adv-scene">
@@ -26,7 +20,7 @@
 
         {{-- Pregunta --}}
         <div class="panel adv-quiz">
-            <h3 class="adv-block__title">❓ Pregunta</h3>
+            <h3 class="adv-block__title"><i class="fas fa-question-circle" aria-hidden="true"></i> Pregunta</h3>
             <p class="adv-question">{{ $scenario->question }}</p>
 
             <form action="{{ route('adventure.check', ['scenario' => $scenario->id]) }}" method="POST">
@@ -55,7 +49,7 @@
     {{-- Recompensa del escenario --}}
     @if ($scenario->item)
         <div class="panel adv-block">
-            <h3 class="adv-block__title">🎁 Recompensa</h3>
+            <h3 class="adv-block__title"><i class="fas fa-gift" aria-hidden="true"></i> Recompensa</h3>
             <div class="adv-reward">
                 <img src="{{ asset('images/' . $scenario->item->image) }}" alt="{{ $scenario->item->name }}">
                 <div><strong>{{ $scenario->item->name }}</strong><p>{{ $scenario->item->description }}</p></div>
@@ -65,7 +59,7 @@
 
     {{-- Premios de la aventura --}}
     <div class="panel adv-block">
-        <h3 class="adv-block__title">🏆 Premios de la aventura</h3>
+        <h3 class="adv-block__title"><i class="fas fa-trophy" aria-hidden="true"></i> Premios de la aventura</h3>
         <div class="adv-prizes">
             @foreach ($adventure->items as $item)
                 <div class="adv-prize">

@@ -29,7 +29,7 @@
         </div>
         <a href="{{ route('logout') }}" class="epic-hud__logout" title="Cerrar sesión"
            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-            ⏻
+            <i class="fas fa-power-off" aria-hidden="true"></i> 
         </a>
     </div>
 </nav>

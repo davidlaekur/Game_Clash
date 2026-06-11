@@ -46,6 +46,7 @@
         'worldMap'    => $worldMap,
         'worldW'      => 1408,
         'worldH'      => 768,
+        'adjacency'   => config('zone_adjacency'),
     ];
 
     // Ubicación actual del jugador
@@ -73,23 +74,13 @@
         });
 
     $actionLabels = [
-        'move' => '🚶 Moviéndote', 'explore' => '🧭 Explorando',
-        'collect' => '⛏️ Recolectando', 'invent' => '💡 Forjando',
-        'attack' => '⚔️ Atacando',
+        'move' => 'Moviéndote', 'explore' => 'Explorando',
+        'collect' => 'Recolectando', 'invent' => 'Forjando',
+        'attack' => 'Atacando',
     ];
 @endphp
 
 <div class="warmap-page">
-
-    @if (session('success'))
-        <div class="container"><div class="alert alert-success">{{ session('success') }}</div></div>
-    @endif
-    @if (session('warning'))
-        <div class="container"><div class="alert alert-warning">{{ session('warning') }}</div></div>
-    @endif
-    @if (session('error'))
-        <div class="container"><div class="alert alert-danger">{{ session('error') }}</div></div>
-    @endif
 
     {{-- Mapa a ancho completo + panel lateral con toda la info --}}
     <div class="warmap-layout">
@@ -103,7 +94,7 @@
                 <div class="side-head__top">
                     <h1 class="side-head__title">Mapa de Campaña</h1>
                     <button type="button" id="music-toggle" class="hud__music" aria-pressed="false" title="Música">
-                        <span class="hud__music-on">🔊</span><span class="hud__music-off">🔇</span>
+                        <span class="hud__music-on"><i class="fas fa-volume-up" aria-hidden="true"></i> </span><span class="hud__music-off"><i class="fas fa-volume-mute" aria-hidden="true"></i> </span>
                     </button>
                 </div>
                 <p class="side-head__sub">El Reino de Laraveland · {{ $zones->count() }} territorios en disputa</p>
@@ -115,7 +106,7 @@
                 @else
                     <form action="{{ route('import.zones') }}" method="POST">
                         @csrf
-                        <button type="submit" class="btn-epic side-head__cta">➕ Importar Territorios</button>
+                        <button type="submit" class="btn-epic side-head__cta"><i class="fas fa-plus" aria-hidden="true"></i> Importar Territorios</button>
                     </form>
                 @endif
             </div>
@@ -123,7 +114,7 @@
             {{-- Facción + reparto de territorios --}}
             <div class="panel side-block">
                 <div class="side-faction side-faction--{{ $myTeamMod }}">
-                    <span class="side-faction__icon">🛡️</span>
+                    <span class="side-faction__icon"><i class="fas fa-shield-alt" aria-hidden="true"></i> </span>
                     <div>
                         <span class="side-block__label">Tu facción</span>
                         <span class="side-faction__name">{{ $myTeamName }}</span>
@@ -143,7 +134,7 @@
 
             {{-- Ubicación actual --}}
             <div class="panel side-block">
-                <h3 class="side-block__title">📍 Tu ubicación</h3>
+                <h3 class="side-block__title"><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Tu ubicación</h3>
                 @if ($currentZone)
                     <p class="side-loc">{{ $currentZone->name }}</p>
                     <p class="side-loc__sub">{{ ucfirst($currentZone->landscape) }}</p>
@@ -155,7 +146,7 @@
 
             {{-- Acciones en marcha --}}
             <div class="panel side-block">
-                <h3 class="side-block__title">⏳ Acciones en marcha</h3>
+                <h3 class="side-block__title"><i class="fas fa-hourglass-half" aria-hidden="true"></i> Acciones en marcha</h3>
                 @forelse ($activeActions as $act)
                     <div class="side-action" data-remaining="{{ $act['remaining'] }}">
                         <div class="side-action__head">

@@ -12,14 +12,14 @@ class ZoneService
             return false;
         }
 
+        // Fronteras explícitas (config/zone_adjacency.php), indexadas por "lat,lon".
+        // Las distancias de lat/lon siguen rigiendo el tiempo de movimiento; esto
+        // solo decide qué territorios limitan entre sí para poder atacar.
+        $key    = (int) $zone1->latitude . ',' . (int) $zone1->longitude;
+        $target = (int) $zone2->latitude . ',' . (int) $zone2->longitude;
 
-        $lat1 = $zone1->latitude;
-        $lon1 = $zone1->longitude;
-        $lat2 = $zone2->latitude;
-        $lon2 = $zone2->longitude;
+        $neighbors = config('zone_adjacency')[$key] ?? [];
 
-        // chequeamos posiciones adyacentes para atacar 
-        return 
-            ($lat1 === $lat2 && ($lon1 === $lon2 + 1 || $lon1 === $lon2 - 1)) || ($lon1 === $lon2 && ($lat1 === $lat2 + 1 || $lat1 === $lat2 - 1));
+        return in_array($target, $neighbors, true);
     }
 }

@@ -13,16 +13,12 @@
 <div class="team-view">
     <a href="{{ route('zones.index') }}" class="btn-ghost team-view__back">← Volver al mapa</a>
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-
     <h1 class="team-view__title">Mi Equipo</h1>
 
     {{-- Inventarios --}}
     <div class="team-inventories">
         <div class="panel team-inv">
-            <h3 class="team-inv__title">🎒 Mi inventario</h3>
+            <h3 class="team-inv__title"><i class="fas fa-box-open" aria-hidden="true"></i> Mi inventario</h3>
             @if ($userInventory)
                 <a href="{{ route('resources.show', $userInventory->id) }}" class="btn-epic">Ver inventario personal</a>
             @else
@@ -31,7 +27,7 @@
             @endif
         </div>
         <div class="panel team-inv">
-            <h3 class="team-inv__title">🏰 Inventario del equipo</h3>
+            <h3 class="team-inv__title"><i class="fas fa-chess-rook" aria-hidden="true"></i> Inventario del equipo</h3>
             @if ($teamInventory)
                 <a href="{{ route('resources.show', $teamInventory->id) }}" class="btn-epic">Ver inventario del equipo</a>
             @else
@@ -48,8 +44,8 @@
             <h2 class="team-banner__name">{{ $myTeam->name }}</h2>
             <p class="team-banner__desc">Eres parte de este clan. Gestiona a sus miembros e inventarios.</p>
             <div class="team-banner__actions">
-                <a href="{{ route('actions.index', $myTeam->id) }}" class="btn-ghost">⏳ Acciones del equipo</a>
-                <a href="{{ route('teams.transfer', $myTeam->id) }}" class="btn-ghost">🔄 Transferir inventario</a>
+                <a href="{{ route('actions.index', $myTeam->id) }}" class="btn-ghost"><i class="fas fa-hourglass-half" aria-hidden="true"></i> Acciones del equipo</a>
+                <a href="{{ route('teams.transfer', $myTeam->id) }}" class="btn-ghost"><i class="fas fa-sync-alt" aria-hidden="true"></i> Transferir inventario</a>
             </div>
         </div>
 

@@ -35,7 +35,7 @@
         {{-- Columna derecha: datos y acciones --}}
         <div class="zone-side">
             <div class="panel zone-block">
-                <h3 class="zone-block__title">🛡️ Defensa</h3>
+                <h3 class="zone-block__title"><i class="fas fa-shield-alt" aria-hidden="true"></i> Defensa</h3>
                 <ul class="zone-stats">
                     <li><span>Terreno</span><b>{{ $zone->defense }}</b></li>
                     <li><span>Jugadores (stats + inventos)</span><b>{{ $totalDefender }}</b></li>
@@ -45,7 +45,7 @@
             </div>
 
             <div class="panel zone-block">
-                <h3 class="zone-block__title">⛏️ Recursos</h3>
+                <h3 class="zone-block__title"><i class="fas fa-gem" aria-hidden="true"></i> Recursos</h3>
                 @if($zone->materials->count())
                     <div class="zone-res">
                         @foreach($zone->materials as $material)
@@ -58,11 +58,12 @@
             </div>
 
             <div class="panel zone-block">
-                <h3 class="zone-block__title">🎮 Acciones</h3>
+                <h3 class="zone-block__title"><i class="fas fa-bolt" aria-hidden="true"></i> Acciones</h3>
 
                 @if ($timeRemaining > 0)
                     <p id="timer" class="zone-timer">
-                        ⏳ Acción en curso · <span id="timeRemaining">{{ $timeRemaining }}</span> s
+                        <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+                        Acción en curso · <span id="timeRemaining">{{ $timeRemaining }}</span> s
                     </p>
                 @endif
 
@@ -70,32 +71,32 @@
                     @if ($user->zone_id !== $zone->id)
                         <form action="{{ route('players.move', $zone->id) }}" method="POST" data-sfx="move">
                             @csrf
-                            <button type="submit" class="btn-action btn-action--move" {{ $timeRemaining > 0 ? 'disabled' : '' }}>🚶 Moverse</button>
+                            <button type="submit" class="btn-action btn-action--move" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-walking" aria-hidden="true"></i> Moverse</button>
                         </form>
                     @endif
 
                     @if ($user->zone_id === $zone->id && $zone->team_id === null)
                         <form action="{{ route('players.explore', $zone->id) }}" method="POST" data-sfx="explore">
                             @csrf
-                            <button type="submit" class="btn-action btn-action--explore" {{ $timeRemaining > 0 ? 'disabled' : '' }}>🧭 Explorar</button>
+                            <button type="submit" class="btn-action btn-action--explore" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-compass" aria-hidden="true"></i> Explorar</button>
                         </form>
                     @endif
 
                     @if ($user->zone_id === $zone->id && $zone->team_id === $user->team_id)
                         <form action="{{ route('players.collect', $zone->id) }}" method="POST" data-sfx="collect">
                             @csrf
-                            <button type="submit" class="btn-action btn-action--collect" {{ $timeRemaining > 0 ? 'disabled' : '' }}>⛏️ Recolectar</button>
+                            <button type="submit" class="btn-action btn-action--collect" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-hand-holding" aria-hidden="true"></i> Recolectar</button>
                         </form>
                         <form action="{{ route('players.invent', $zone->id) }}" method="POST" data-sfx="invent">
                             @csrf
-                            <button type="submit" class="btn-action btn-action--invent" {{ $timeRemaining > 0 ? 'disabled' : '' }}>💡 Inventar</button>
+                            <button type="submit" class="btn-action btn-action--invent" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-lightbulb" aria-hidden="true"></i> Inventar</button>
                         </form>
                     @endif
 
                     @if ($user->team_id !== null && $zone->team_id !== $user->team_id && $zone->team_id !== null && $zoneAdjacent)
                         <form action="{{ route('players.attack', $zone->id) }}" method="POST" data-sfx="attack">
                             @csrf
-                            <button type="submit" class="btn-action btn-action--attack" {{ $timeRemaining > 0 ? 'disabled' : '' }}>⚔️ Atacar</button>
+                            <button type="submit" class="btn-action btn-action--attack" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-khanda" aria-hidden="true"></i> Atacar</button>
                         </form>
                     @endif
                 </div>
@@ -114,7 +115,10 @@
                 clearInterval(timer);
                 const t = document.getElementById('timer');
                 t.classList.add('zone-timer--done');
-                t.innerText = '✅ Acción completada. Ya puedes actuar.';
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Acción completada';
+                // recarga para reflejar el estado real del servidor (acción finalizada,
+                // botones activos, propietario/defensa actualizados). Vale para cualquier acción.
+                setTimeout(() => { window.location.reload(); }, 1200);
             }
         }, 1000);
     }

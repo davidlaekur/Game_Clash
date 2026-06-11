@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-epic auth-submit">🛡 Registrarse</button>
+            <button type="submit" class="btn-epic auth-submit"><i class="fas fa-shield-alt" aria-hidden="true"></i> Registrarse</button>
         </form>
 
         <p class="auth-foot">¿Ya tienes cuenta? <a href="{{ route('login') }}">Inicia sesión</a></p>

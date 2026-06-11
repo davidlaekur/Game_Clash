@@ -8,10 +8,6 @@
 
     <h1 class="inv-view__title">Acciones del Equipo</h1>
 
-    @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
     @if ($teamActions->count() > 0)
         <div class="panel inv-block">
             <table class="game-table">

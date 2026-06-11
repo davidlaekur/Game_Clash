@@ -11,11 +11,11 @@
     @if ($inventory)
         <div class="inv-view__meta">
             <span class="chip chip--brass">{{ ucfirst($inventory->type) }}</span>
-            <a href="{{ route('teams.transfer') }}" class="btn-ghost">🔄 Gestionar transferencias</a>
+            <a href="{{ route('teams.transfer') }}" class="btn-ghost"><i class="fas fa-sync-alt" aria-hidden="true"></i> Gestionar transferencias</a>
         </div>
 
         <div class="panel inv-block">
-            <h3 class="inv-block__title">💎 Materiales</h3>
+            <h3 class="inv-block__title"><i class="fas fa-gem" aria-hidden="true"></i> Materiales</h3>
             <table class="game-table">
                 <thead><tr><th>Material</th><th>Cantidad</th></tr></thead>
                 <tbody>
@@ -29,7 +29,7 @@
         </div>
 
         <div class="panel inv-block">
-            <h3 class="inv-block__title">💡 Inventos</h3>
+            <h3 class="inv-block__title"><i class="fas fa-lightbulb" aria-hidden="true"></i> Inventos</h3>
             <table class="game-table">
                 <thead><tr><th>Nombre</th><th>Eficiencia</th><th>Puntos</th></tr></thead>
                 <tbody>

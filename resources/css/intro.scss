@@ -584,3 +584,44 @@ nav { position: relative; z-index: 1000; }
 .approach-planet--moon  { --dx: 10vw;  --dy: -7vh; }
 .approach-planet--far   { --dx: -12vw; --dy: 8vh; }
 .approach-planet--small { --dx: -8vw;  --dy: -6vh; }
+
+// ============================================================
+// Intro fullscreen: oculta navbar y resetea padding de main
+// ============================================================
+.epic-header { display: none !important; }
+.game-main    { padding: 0 !important; max-width: none !important; }
+
+// Corta el desbordamiento lateral 3D del crawl
+.intro-crawl { clip-path: inset(0); }
+
+// ============================================================
+// Ajustes móvil
+// ============================================================
+@media (max-width: 767px) {
+
+	.intro-crawl {
+		perspective:        420px;
+		perspective-origin: 50% 8%;
+	}
+
+	.intro-crawl__content {
+		width: 88%;
+		transform: translateX(-50%) rotateX(28deg) translateY(0);
+
+		p { font-size: 1.05rem; line-height: 1.4; margin-bottom: .75rem; }
+	}
+
+	.intro-crawl__title {
+		font-size:     clamp(1.3rem, 6vw, 1.9rem) !important;
+		margin-bottom: 1rem;
+	}
+
+	// Ángulo más suave (28° vs 38°) → menos desbordamiento horizontal.
+	// Desplazamiento reducido (-100% vs -165%) → velocidad de scroll apropiada
+	// porque en móvil el contenido es más alto (más saltos de línea).
+	@keyframes crawl-scroll {
+		0%   { transform: translateX(-50%) rotateX(28deg) translateY(20%); }
+		47%  { transform: translateX(-50%) rotateX(28deg) translateY(-100%); }
+		100% { transform: translateX(-50%) rotateX(28deg) translateY(-100%); }
+	}
+}

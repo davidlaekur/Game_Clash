@@ -8,17 +8,10 @@
 
     <h1 class="inv-view__title">Transferencia de Inventarios</h1>
 
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    @if (session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
     <div class="transfer-grid">
         {{-- Materiales del equipo -> personal --}}
         <div class="panel inv-block">
-            <h3 class="inv-block__title">🏰 Materiales del equipo</h3>
+            <h3 class="inv-block__title"><i class="fas fa-chess-rook" aria-hidden="true"></i> Materiales del equipo</h3>
             @if ($teamInventory && $teamInventory->materials->count() > 0)
                 <form action="{{ route('teams.processTransfer') }}" method="POST">
                     @csrf
@@ -45,7 +38,7 @@
 
         {{-- Materiales personal -> equipo --}}
         <div class="panel inv-block">
-            <h3 class="inv-block__title">🎒 Mis materiales</h3>
+            <h3 class="inv-block__title"><i class="fas fa-box-open" aria-hidden="true"></i> Mis materiales</h3>
             @if ($userInventory && $userInventory->materials->count() > 0)
                 <form action="{{ route('teams.processTransfer') }}" method="POST">
                     @csrf
@@ -72,7 +65,7 @@
 
         {{-- Inventos del equipo -> personal --}}
         <div class="panel inv-block">
-            <h3 class="inv-block__title">🏰 Inventos del equipo</h3>
+            <h3 class="inv-block__title"><i class="fas fa-chess-rook" aria-hidden="true"></i> Inventos del equipo</h3>
             @if ($teamInventory && $teamInventory->inventions->count() > 0)
                 <form action="{{ route('teams.processTransfer') }}" method="POST">
                     @csrf
@@ -101,7 +94,7 @@
 
         {{-- Inventos personal -> equipo --}}
         <div class="panel inv-block">
-            <h3 class="inv-block__title">🎒 Mis inventos</h3>
+            <h3 class="inv-block__title"><i class="fas fa-box-open" aria-hidden="true"></i> Mis inventos</h3>
             @if ($userInventory && $userInventory->inventions->count() > 0)
                 <form action="{{ route('teams.processTransfer') }}" method="POST">
                     @csrf

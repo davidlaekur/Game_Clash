@@ -6,10 +6,6 @@
 <div class="profile-view">
     <a href="{{ route('zones.index') }}" class="btn-ghost profile-view__back">← Volver al mapa</a>
 
-    @if (session('success'))
-        <div class="alert alert-success">{!! session('success') !!}</div>
-    @endif
-
     <h1 class="profile-view__title">Perfil de {{ $user->name }}</h1>
 
     <div class="profile-grid">
@@ -31,14 +27,14 @@
                 @endforeach
             </ul>
 
-            <a href="{{ route('players.edit', $user->id) }}" class="btn-epic profile-card__edit">✎ Editar perfil</a>
+            <a href="{{ route('players.edit', $user->id) }}" class="btn-epic profile-card__edit"><i class="fas fa-pen" aria-hidden="true"></i> Editar perfil</a>
         </div>
 
         {{-- Recompensas + inventario --}}
         <div class="profile-side">
             @if (count($earnedItems) > 0)
                 <div class="panel profile-block">
-                    <h3 class="profile-block__title">🏆 Recompensas de aventuras</h3>
+                    <h3 class="profile-block__title"><i class="fas fa-trophy" aria-hidden="true"></i> Recompensas de aventuras</h3>
                     <div class="profile-rewards">
                         @foreach ($earnedItems as $item)
                             <div class="reward-card">
@@ -53,7 +49,7 @@
 
             @if (count($rewards) > 0)
                 <div class="panel profile-block">
-                    <h3 class="profile-block__title">🎖️ Premios de aventuras</h3>
+                    <h3 class="profile-block__title"><i class="fas fa-medal" aria-hidden="true"></i> Premios de aventuras</h3>
                     <div class="profile-rewards">
                         @foreach ($rewards as $reward)
                             <div class="reward-card">
@@ -67,7 +63,7 @@
             @endif
 
             <div class="panel profile-block profile-block--inv">
-                <h3 class="profile-block__title">🎒 Mi inventario</h3>
+                <h3 class="profile-block__title"><i class="fas fa-box-open" aria-hidden="true"></i> Mi inventario</h3>
                 @if ($userInventory)
                     <a href="{{ route('resources.show', $userInventory->id) }}" class="btn-epic">Ver inventario personal</a>
                 @else

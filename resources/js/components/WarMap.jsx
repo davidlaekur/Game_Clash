@@ -62,6 +62,7 @@ export default function WarMap({
     worldMap = "",
     worldW = 1408,
     worldH = 768,
+    adjacency = {},
 }) {
     const wrapRef = useRef(null);
     const [view, setView] = useState({ x: 0, y: 0, k: 1 });
@@ -92,6 +93,22 @@ export default function WarMap({
             };
         });
     }, [zones, worldW, worldH]);
+
+    // Caminos entre territorios vecinos (fronteras explícitas del backend).
+    // Se dibuja una línea por arista, sin duplicar (solo cuando "a" < "b").
+    const edges = useMemo(() => {
+        const byKey = {};
+        points.forEach((p) => { byKey[`${p.zone.lat},${p.zone.lon}`] = p; });
+        const out = [];
+        Object.entries(adjacency).forEach(([a, neighbors]) => {
+            (neighbors || []).forEach((b) => {
+                if (a >= b) return;
+                const pa = byKey[a], pb = byKey[b];
+                if (pa && pb) out.push({ key: `${a}-${b}`, x1: pa.x, y1: pa.y, x2: pb.x, y2: pb.y });
+            });
+        });
+        return out;
+    }, [points, adjacency]);
 
     const computeFit = useCallback(() => {
         const el = wrapRef.current;
@@ -176,6 +193,7 @@ export default function WarMap({
     const openZone = (z) => { if (drag.current.moved <= 6) window.location.href = `${showUrlBase}/${z.id}`; };
 
     return (
+        <>
         <div
             className="warmap-stage"
             ref={wrapRef}
@@ -192,6 +210,15 @@ export default function WarMap({
                 {/* fondo: el mapa-mundo único */}
                 <img className="warmap-world" src={worldMap} width={worldW} height={worldH} alt="Mapa del mundo" draggable="false" />
 
+                {/* caminos entre territorios vecinos */}
+                {edges.length > 0 && (
+                    <svg className="warmap-links" width={worldW} height={worldH} viewBox={`0 0 ${worldW} ${worldH}`} aria-hidden="true">
+                        {edges.map((e) => (
+                            <line key={e.key} x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2} />
+                        ))}
+                    </svg>
+                )}
+
                 {/* marcadores de zona */}
                 {points.map((p) => {
                     const z = p.zone;
@@ -207,7 +234,7 @@ export default function WarMap({
                             onMouseLeave={() => setHover((h) => (h === z.id ? null : h))}
                             title={`${z.name} — ${z.landscape}`}
                         >
-                            {z.current && <span className="warmap-marker__here">★</span>}
+                            {z.current && <span className="warmap-marker__here"><i className="fas fa-map-marker-alt" aria-hidden="true"></i></span>}
                             <span className="warmap-marker__pin">
                                 <span className="warmap-marker__icon">{landIcon(z.landscape)}</span>
                                 <span className="warmap-marker__def">{z.defense}</span>
@@ -234,7 +261,8 @@ export default function WarMap({
                     {fullscreen ? "✕" : "⛶"}
                 </button>
             </div>
-            <p className="warmap-hint">Arrastra para recorrer · rueda o ＋ para ampliar · clic en un territorio para entrar</p>
         </div>
+        <p className="warmap-hint">Arrastra para recorrer · rueda o ＋ para ampliar · clic en un territorio para entrar</p>
+        </>
     );
 }

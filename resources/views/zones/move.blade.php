@@ -37,7 +37,8 @@
                 clearInterval(timer);
                 const t = document.getElementById('action-timer');
                 t.classList.add('action-timer--done');
-                t.innerText = '✅ Has llegado a la zona.';
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Has llegado a la zona.';
+                setTimeout(() => { window.location.href = "{{ route('zones.show', $zone->id) }}"; }, 1200);
             }
         }, 1000);
     }

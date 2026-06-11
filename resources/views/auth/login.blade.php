@@ -32,7 +32,7 @@
             <label class="auth-check">
                 <input type="checkbox" name="remember"> Recuérdame
             </label>
-            <button type="submit" class="btn-epic auth-submit">⚔ Iniciar Sesión</button>
+            <button type="submit" class="btn-epic auth-submit"><i class="fas fa-khanda" aria-hidden="true"></i> Iniciar Sesión</button>
         </form>
 
         <p class="auth-foot">¿No tienes cuenta? <a href="{{ route('register') }}">Regístrate</a></p>

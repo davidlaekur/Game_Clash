@@ -11,9 +11,6 @@
     @if (isset($error))
         <div class="alert alert-danger">{{ $error }}</div>
     @endif
-    @if (session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
 
     @if (isset($timeRemaining) && $timeRemaining > 0)
         <p id="timer" class="action-timer forge-timer">
@@ -32,7 +29,7 @@
                     <label class="forge-opt">
                         <input type="radio" name="material_id" value="{{ $material->material->id }}" required>
                         <span class="forge-opt__body">
-                            <span class="forge-opt__name">💎 {{ $material->material->name }}</span>
+                            <span class="forge-opt__name"><i class="fas fa-gem" aria-hidden="true"></i> {{ $material->material->name }}</span>
                             <span class="forge-opt__sub">x{{ $material->quantity }}</span>
                         </span>
                     </label>
@@ -74,13 +71,13 @@
         @endif
 
         <div class="forge-submit">
-            <button type="submit" class="btn-epic" {{ session('actionBlocked') ? 'disabled' : '' }}>⚒️ Crear invento</button>
+            <button type="submit" class="btn-epic" {{ session('actionBlocked') ? 'disabled' : '' }}><i class="fas fa-hammer" aria-hidden="true"></i> Crear invento</button>
         </div>
 
         @php $withNeeds = $inventionTypes->filter(fn($t) => !$t->needs->isEmpty()); @endphp
         @if ($withNeeds->count() > 0)
             <div class="panel forge-block forge-recipes">
-                <h3 class="forge-block__title">📜 Recetas (requisitos previos)</h3>
+                <h3 class="forge-block__title"><i class="fas fa-scroll" aria-hidden="true"></i> Recetas (requisitos previos)</h3>
                 <div class="forge-recipes__grid">
                     @foreach ($withNeeds as $type)
                         <div class="forge-recipe">
@@ -112,7 +109,8 @@
                 clearInterval(timer);
                 const t = document.getElementById('timer');
                 t.classList.add('action-timer--done');
-                t.innerText = "✅ Invento completado. Ya puedes actuar.";
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Invento completado.';
+                setTimeout(() => { window.location.href = "{{ route('zones.show', $zone->id) }}"; }, 1200);
             }
         }, 1000);
     }

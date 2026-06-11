@@ -23,6 +23,8 @@
     </header>
     @endif
 
+    @include('partials.flash')
+
     <main class="game-main flex-grow-1">
         @yield('content')
     </main>
