@@ -13,23 +13,28 @@ use Illuminate\Support\Facades\Cache;
  */
 class WorldEventService
 {
-    private const SPAWN_INTERVAL = 240; // cada 4 min, intento de nuevo evento
-    private const MAX_ACTIVE = 4;       // tope de eventos simultáneos
+    private const SPAWN_INTERVAL = 180; // cada 3 min, intento de evento extra (variedad)
+    private const MIN_ACTIVE = 2;       // siempre al menos estos eventos vivos
+    private const MAX_ACTIVE = 5;       // tope de eventos simultáneos
 
     public function tick(): void
     {
         $this->expireOld();
 
-        $last = (int) Cache::get('world_event_last', 0);
-        if (now()->timestamp - $last < self::SPAWN_INTERVAL) {
-            return;
-        }
-        Cache::put('world_event_last', now()->timestamp, 86400);
+        $active = Zone::whereNotNull('event_type')->count();
 
-        if (Zone::whereNotNull('event_type')->count() >= self::MAX_ACTIVE) {
-            return;
+        // mantener un mínimo de eventos vivos: el mundo siempre se siente activo
+        while ($active < self::MIN_ACTIVE && $this->spawn()) {
+            $active++;
         }
-        $this->spawn();
+
+        // spawn periódico extra para variedad, hasta el máximo
+        $last = (int) Cache::get('world_event_last', 0);
+        if ($active < self::MAX_ACTIVE && now()->timestamp - $last >= self::SPAWN_INTERVAL) {
+            if ($this->spawn()) {
+                Cache::put('world_event_last', now()->timestamp, 86400);
+            }
+        }
     }
 
     private function expireOld(): void
@@ -44,11 +49,11 @@ class WorldEventService
         }
     }
 
-    private function spawn(): void
+    private function spawn(): bool
     {
         $free = Zone::whereNull('event_type')->get();
         if ($free->isEmpty()) {
-            return;
+            return false;
         }
         $zone = $free->random();
 
@@ -61,5 +66,7 @@ class WorldEventService
         // la tormenta resta ~35% de la defensa base
         $zone->event_magnitude = $type === 'tormenta' ? (int) round($zone->defense * 0.35) : 0;
         $zone->save();
+
+        return true;
     }
 }

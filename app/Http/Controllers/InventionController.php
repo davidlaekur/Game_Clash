@@ -77,10 +77,10 @@ class InventionController extends Controller
             }
         }
 
-        // consumir material principal
+        // consumir material principal (si llega a 0 se elimina del inventario)
         if ($inventoryMaterial) {
             $inventoryMaterial->quantity -= 1;
-            $inventoryMaterial->save();
+            $inventoryMaterial->quantity <= 0 ? $inventoryMaterial->delete() : $inventoryMaterial->save();
         }
 
         // consumir ingredientes extra (de cualquier depósito que tenga el material)
@@ -89,7 +89,7 @@ class InventionController extends Controller
             foreach ($user->inventory->materials->filter(fn($im) => optional($im->material)->name === $req['name'] && $im->quantity > 0) as $im) {
                 $take = min($remaining, $im->quantity);
                 $im->quantity -= $take;
-                $im->save();
+                $im->quantity <= 0 ? $im->delete() : $im->save();
                 $remaining -= $take;
                 if ($remaining <= 0) break;
             }

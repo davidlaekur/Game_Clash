@@ -28,6 +28,7 @@ class Zone extends Model
         'event_type',      // evento de mundo activo (tormenta/bonanza/plaga)
         'event_ends_at',   // cuándo caduca el evento
         'event_magnitude', // intensidad del evento (p.ej. defensa que resta la tormenta)
+        'explore_until',   // bloqueo: alguien está explorando la zona hasta este momento
     ];
 
     /**

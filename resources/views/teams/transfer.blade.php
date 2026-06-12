@@ -12,7 +12,7 @@
         {{-- Materiales del equipo -> personal --}}
         <div class="panel inv-block">
             <h3 class="inv-block__title"><i class="fas fa-chess-rook" aria-hidden="true"></i> Materiales del equipo</h3>
-            @if ($teamInventory && $teamInventory->materials->count() > 0)
+            @if ($teamInventory && $teamInventory->materials->where('quantity', '>', 0)->count() > 0)
                 <form action="{{ route('teams.processTransfer') }}" method="POST">
                     @csrf
                     <input type="hidden" name="team_id" value="{{ $team->id }}">
@@ -20,7 +20,7 @@
                     <table class="game-table">
                         <thead><tr><th>Material</th><th>Disp.</th><th>Transferir</th></tr></thead>
                         <tbody>
-                            @foreach ($teamInventory->materials as $material)
+                            @foreach ($teamInventory->materials->where('quantity', '>', 0) as $material)
                                 <tr>
                                     <td>{{ $material->material->name }}</td>
                                     <td>{{ $material->quantity }}</td>
@@ -39,7 +39,7 @@
         {{-- Materiales personal -> equipo --}}
         <div class="panel inv-block">
             <h3 class="inv-block__title"><i class="fas fa-box-open" aria-hidden="true"></i> Mis materiales</h3>
-            @if ($userInventory && $userInventory->materials->count() > 0)
+            @if ($userInventory && $userInventory->materials->where('quantity', '>', 0)->count() > 0)
                 <form action="{{ route('teams.processTransfer') }}" method="POST">
                     @csrf
                     <input type="hidden" name="team_id" value="{{ $team->id }}">
@@ -47,7 +47,7 @@
                     <table class="game-table">
                         <thead><tr><th>Material</th><th>Disp.</th><th>Transferir</th></tr></thead>
                         <tbody>
-                            @foreach ($userInventory->materials as $material)
+                            @foreach ($userInventory->materials->where('quantity', '>', 0) as $material)
                                 <tr>
                                     <td>{{ $material->material->name }}</td>
                                     <td>{{ $material->quantity }}</td>

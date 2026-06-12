@@ -37,7 +37,7 @@ class AdventureController extends Controller
     public function showIntro()
     {
         if (Auth::user()->rankLevel() < 2) {
-            return redirect()->route('home')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura. Sigue destacando en combate.');
+            return redirect()->route('zones.index')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura. Sigue destacando en combate.');
         }
         return view('adventures.intro');
     }
@@ -50,12 +50,12 @@ class AdventureController extends Controller
     {
         $user = Auth::user();
         if ($user->rankLevel() < 2) {
-            return redirect()->route('home')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura.');
+            return redirect()->route('zones.index')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura.');
         }
         $userAdventure = $this->obtenerAventuraActiva($user);
 
         if (!$userAdventure) {
-            return redirect()->route('home')->with('error', 'No hay aventuras disponibles en este momento.');
+            return redirect()->route('zones.index')->with('error', 'No hay aventuras disponibles en este momento.');
         }
 
         $adventure = Adventure::with(['items', 'scenarios'])->find($userAdventure->adventure_id);
@@ -185,7 +185,7 @@ class AdventureController extends Controller
     {
         $userAdventure = UserAdventure::find($id);
         if (!$userAdventure) {
-            return redirect()->route('home')->with('error', 'Aventura no encontrada');
+            return redirect()->route('zones.index')->with('error', 'Aventura no encontrada');
         }
 
         if (!session('answer_iscorrect')) {

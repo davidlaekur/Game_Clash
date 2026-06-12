@@ -42,10 +42,17 @@ class MonitorAction
 
                     if ($action->type->name === 'explore') {
                         $zone = $action->actionable;
-                        $zone->update(['team_id' => $user->team_id]);
-                        $user->addMerit(5); // mérito por conquistar territorio
-
-                        session()->flash('success', "Has completado la exploración. La {$zone->name} ahora pertenece a tu equipo.");
+                        if ($zone && $zone->team_id === null) {
+                            $zone->team_id = $user->team_id;
+                            $zone->explore_until = null; // libera el bloqueo
+                            $zone->save();
+                            $user->addMerit(5); // mérito por conquistar territorio
+                            session()->flash('success', "Has completado la exploración. La {$zone->name} ahora pertenece a tu equipo.");
+                        } elseif ($zone) {
+                            $zone->explore_until = null;
+                            $zone->save();
+                            session()->flash('warning', "La {$zone->name} ya fue tomada por otro equipo mientras la explorabas.");
+                        }
                     }
 
                     if ($action->type->name === 'invent') {
@@ -63,35 +70,8 @@ class MonitorAction
                                 'inventory_id' => $user->inventory->id,
                             ]);
 
-                                    // asignar estadísticas al invento
-                            $inventionStats = [
-                                'Piedra Afilada' => ['ataque' => 5],
-                                'Cuerda' => ['ingenio' => 3, 'velocidad' => 2],
-                                'Fuego' => ['ingenio' => 4, 'defensa' => 3],
-                                'Lanza' => ['ataque' => 6, 'defensa' => 2],
-                                'Arco y Flecha' => ['ataque' => 7, 'defensa' => 3],
-                                'Cesta' => ['capacidad' => 5, 'suerte' => 2],
-                                'Rueda' => ['velocidad' => 5],
-                                'Trampa' => ['defensa' => 6],
-                                'Hacha' => ['ataque' => 5, 'suerte' => 4],
-                                'Carro' => ['capacidad' => 7, 'velocidad' => 3],
-                                // armadura: solo defensa (la salud viene del sustento)
-                                'Traje de Malla' => ['defensa' => 6],
-                                'Espada' => ['ataque' => 8],
-                                'Escudo' => ['defensa' => 8],
-                                // sustento: dan salud (familia Orgánico)
-                                'Vendaje' => ['salud' => 4],
-                                'Poción' => ['salud' => 6, 'ingenio' => 2],
-                                'Ración' => ['salud' => 5, 'capacidad' => 2],
-                                // arena / óptica
-                                'Vidrio' => ['ingenio' => 2],
-                                'Catalejo' => ['ingenio' => 4, 'suerte' => 3],
-                                // élite estelar
-                                'Núcleo Estelar' => ['ataque' => 8, 'defensa' => 8, 'salud' => 8],
-                                // rama explosiva
-                                'Pólvora' => ['ataque' => 4],
-                                'Cañón' => ['ataque' => 9],
-                            ];
+                                    // asignar estadísticas al invento (fuente única en config)
+                            $inventionStats = config('invention_stats');
 
                             // el material modula los stats: más denso => más puntos
                             $statFactor = $pointsAndEfficiency['statFactor'] ?? 1;

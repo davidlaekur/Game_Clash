@@ -20,8 +20,9 @@ class NeedSeeder extends Seeder
             'Hacha' => ['Piedra Afilada' => 1],
             'Carro' => ['Cuerda' => 1, 'Cesta' => 1, 'Rueda' => 1, 'Hacha' => 1],
             'Traje de Malla' => ['Cuerda' => 1],
-            'Catalejo' => ['Vidrio' => 1],
-            'Cañón' => ['Pólvora' => 1],
+            'Espada' => ['Fuego' => 1, 'Piedra Afilada' => 1],     // forjar metal + filo
+            'Catalejo' => ['Vidrio' => 1, 'Cuerda' => 1],          // lente + tubo
+            'Cañón' => ['Pólvora' => 1, 'Carro' => 1],             // explosivo + montaje
         ];
 
         foreach ($dependencies as $child => $parents) {

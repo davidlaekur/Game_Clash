@@ -406,7 +406,7 @@ class ZoneController extends Controller
         foreach ($lines as $im) {
             $take = min($need, $im->quantity);
             $im->quantity -= $take;
-            $im->save();
+            $im->quantity <= 0 ? $im->delete() : $im->save();
             $need -= $take;
             if ($need <= 0) {
                 break;

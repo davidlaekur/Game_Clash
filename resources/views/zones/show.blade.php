@@ -103,11 +103,16 @@
                             <span class="btn-action btn-action--mine is-active"><i class="fas fa-hard-hat" aria-hidden="true"></i> Mina activa (x{{ $zone->regen_boost }})</span>
                         @elseif (!empty($mineRemaining) && $mineRemaining > 0)
                             <span class="btn-action btn-action--mine" id="mine-building"><i class="fas fa-hard-hat" aria-hidden="true"></i> Construyendo mina · <span id="mineRemaining">{{ $mineRemaining }}</span>s</span>
-                        @else
+                        @elseif ($mineCanBuild)
                             <form action="{{ route('zones.buildMine', $zone->id) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="btn-action btn-action--mine" title="Cuesta 10 de metal + 15 de madera"><i class="fas fa-hard-hat" aria-hidden="true"></i> Construir mina</button>
+                                <button type="submit" class="btn-action btn-action--mine" title="Cuesta 10 metal + 15 madera"><i class="fas fa-hard-hat" aria-hidden="true"></i> Construir mina (regen x3)</button>
                             </form>
+                        @else
+                            <div class="mine-locked">
+                                <span class="btn-action btn-action--mine is-disabled"><i class="fas fa-hard-hat" aria-hidden="true"></i> Construir mina</span>
+                                <small class="mine-reqs"><i class="fas fa-lock" aria-hidden="true"></i> Te falta: {{ implode(' · ', $mineMissing) }}</small>
+                            </div>
                         @endif
                     @endif
 

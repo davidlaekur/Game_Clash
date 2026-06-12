@@ -213,6 +213,11 @@ class PlayerController extends Controller
             return back()->with('error', 'Esta zona ya está controlada por otro equipo.');
         }
 
+        // Bloqueo anti-carrera: si otro jugador ya la está explorando, no se puede
+        if ($zone->explore_until && \Carbon\Carbon::parse($zone->explore_until)->isFuture()) {
+            return back()->with('error', 'Otro jugador ya está explorando esta zona. Prueba en otra.');
+        }
+
         // tiempo base en segundos 
         $baseTime = 15;
 
@@ -231,6 +236,10 @@ class PlayerController extends Controller
         if ($user->role->name !== 'explorer') {
             $duration *= 1.5; // Penalización del 50%
         }
+
+        // fijar el bloqueo de exploración mientras dura (anti-carrera entre equipos)
+        $zone->explore_until = now()->addSeconds((int) ceil($duration));
+        $zone->save();
 
         // Crear la acción de explorar
         $action = Action::create([

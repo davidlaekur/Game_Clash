@@ -790,6 +790,12 @@
 /* botón de "volver" tras completar una acción (sin auto-salto) */
 .action-done__btn { display: inline-block; margin-left: .6rem; vertical-align: middle; }
 
+/* mina bloqueada: requisitos visibles */
+.btn-action--mine.is-disabled { opacity: .5; cursor: not-allowed; }
+.mine-locked { display: flex; flex-direction: column; gap: .25rem; grid-column: 1 / -1; }
+.mine-reqs { color: #e0a93b; font-size: .76rem; }
+.mine-reqs .fas { margin-right: .2rem; }
+
 /* ranking */
 .ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
 .ranking-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 1rem; }
