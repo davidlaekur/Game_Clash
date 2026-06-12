@@ -27,6 +27,7 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'points',    // Puntos de experiencia
+        'merit',     // Méritos (rango): se ganan destacando en el juego
         'role_id',    // Relación con Rol
         'team_id',    // Relación con Team
         'zone_id',    // Relación con Zone
@@ -128,6 +129,46 @@ class User extends Authenticatable implements JWTSubject
     public function inventory()
     {
         return $this->morphOne(Inventory::class, 'inventoriable'); // Inventario del usuario
+    }
+
+    /**
+     * Solo jugadores reales: excluye a los administradores, que nunca participan
+     * en el juego (no defienden, no atacan, no aparecen en zonas).
+     */
+    public function scopePlayers($query)
+    {
+        // role_id se guarda como string -> comparar como string
+        $adminRoleIds = \App\Models\Role::where('name', 'Admin')->pluck('id')->map(fn($i) => (string) $i)->all();
+        return $query->whereNotIn('role_id', $adminRoleIds);
+    }
+
+    /**
+     * Rango actual según méritos (array name/merit/icon/level).
+     */
+    public function rank(): array
+    {
+        $merit = (int) ($this->merit ?? 0);
+        $ranks = config('ranks');
+        $current = $ranks[0] + ['level' => 0];
+        foreach ($ranks as $i => $r) {
+            if ($merit >= $r['merit']) {
+                $current = $r + ['level' => $i];
+            }
+        }
+        return $current;
+    }
+
+    /** Nivel numérico de rango (0 = Recluta). */
+    public function rankLevel(): int
+    {
+        return $this->rank()['level'];
+    }
+
+    /** Suma méritos y guarda. */
+    public function addMerit(int $amount): void
+    {
+        $this->merit = (int) ($this->merit ?? 0) + $amount;
+        $this->save();
     }
 
 

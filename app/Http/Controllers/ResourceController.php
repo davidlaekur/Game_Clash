@@ -173,6 +173,7 @@ class ResourceController extends Controller
             if ($quantity > 0) {
                 // restar  la cantidad del material en la zona
                 $material->quantity -= $quantity;
+                $material->regenerated_at = now(); // la regeneración cuenta desde aquí
                 $material->save();
 
                 // Buscar si ya existe el registro en InventoryMaterial

@@ -222,7 +222,7 @@ export default function WarMap({
                 {/* marcadores de zona */}
                 {points.map((p) => {
                     const z = p.zone;
-                    const cls = `warmap-marker warmap-marker--${ownClass(z)} warmap-marker--fac-${factionClass(z)} ${z.ownership === "mine" ? "is-mine" : ""} ${z.current ? "is-current" : ""} ${hover === z.id ? "is-hover" : ""}`;
+                    const cls = `warmap-marker warmap-marker--${ownClass(z)} warmap-marker--fac-${factionClass(z)} ${z.ownership === "mine" ? "is-mine" : ""} ${z.current ? "is-current" : ""} ${hover === z.id ? "is-hover" : ""} ${z.event ? "has-event has-event--" + z.event.type : ""}`;
                     return (
                         <button
                             key={z.id}
@@ -232,9 +232,17 @@ export default function WarMap({
                             onClick={() => openZone(z)}
                             onMouseEnter={() => setHover(z.id)}
                             onMouseLeave={() => setHover((h) => (h === z.id ? null : h))}
-                            title={`${z.name} — ${z.landscape}`}
+                            title={z.event ? `${z.name} — ${z.event.label}` : `${z.name} — ${z.landscape}`}
                         >
                             {z.current && <span className="warmap-marker__here"><i className="fas fa-map-marker-alt" aria-hidden="true"></i></span>}
+                            {z.event && (
+                                <span className={`warmap-event warmap-event--${z.event.type}`} aria-label={z.event.label}>
+                                    <i className={`fas ${z.event.icon}`} aria-hidden="true"></i>
+                                </span>
+                            )}
+                            {z.mine_active && (
+                                <span className="warmap-mine" title="Mina activa"><i className="fas fa-hard-hat" aria-hidden="true"></i></span>
+                            )}
                             <span className="warmap-marker__pin">
                                 <span className="warmap-marker__icon">{landIcon(z.landscape)}</span>
                                 <span className="warmap-marker__def">{z.defense}</span>

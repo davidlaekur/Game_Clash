@@ -43,6 +43,7 @@ class MonitorAction
                     if ($action->type->name === 'explore') {
                         $zone = $action->actionable;
                         $zone->update(['team_id' => $user->team_id]);
+                        $user->addMerit(5); // mérito por conquistar territorio
 
                         session()->flash('success', "Has completado la exploración. La {$zone->name} ahora pertenece a tu equipo.");
                     }
@@ -72,12 +73,28 @@ class MonitorAction
                                 'Cesta' => ['capacidad' => 5, 'suerte' => 2],
                                 'Rueda' => ['velocidad' => 5],
                                 'Trampa' => ['defensa' => 6],
-                                'Hacha' => ['suerte' => 4],
+                                'Hacha' => ['ataque' => 5, 'suerte' => 4],
                                 'Carro' => ['capacidad' => 7, 'velocidad' => 3],
-                                'Traje de Malla' => ['salud' => 5, 'defensa' => 4],
+                                // armadura: solo defensa (la salud viene del sustento)
+                                'Traje de Malla' => ['defensa' => 6],
                                 'Espada' => ['ataque' => 8],
-                                'Escudo' => ['salud' => 6, 'defensa' => 5],
+                                'Escudo' => ['defensa' => 8],
+                                // sustento: dan salud (familia Orgánico)
+                                'Vendaje' => ['salud' => 4],
+                                'Poción' => ['salud' => 6, 'ingenio' => 2],
+                                'Ración' => ['salud' => 5, 'capacidad' => 2],
+                                // arena / óptica
+                                'Vidrio' => ['ingenio' => 2],
+                                'Catalejo' => ['ingenio' => 4, 'suerte' => 3],
+                                // élite estelar
+                                'Núcleo Estelar' => ['ataque' => 8, 'defensa' => 8, 'salud' => 8],
+                                // rama explosiva
+                                'Pólvora' => ['ataque' => 4],
+                                'Cañón' => ['ataque' => 9],
                             ];
+
+                            // el material modula los stats: más denso => más puntos
+                            $statFactor = $pointsAndEfficiency['statFactor'] ?? 1;
 
                             if (isset($inventionStats[$invention->name])) {
                                 foreach ($inventionStats[$invention->name] as $statName => $value) {
@@ -86,10 +103,14 @@ class MonitorAction
                                         InventionStat::create([
                                             'invention_id' => $invention->id,
                                             'stat_id' => $stat->id,
-                                            'value' => $value,
+                                            'value' => max(1, (int) round($value * $statFactor)),
                                         ]);
                                     }
                                 }
+                            }
+
+                            if ($inventionType->level >= 3) {
+                                $user->addMerit(10); // mérito por forjar un invento de élite
                             }
 
                             session()->flash('success', "Se ha completado la creación del invento {$inventionType->name}.");

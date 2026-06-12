@@ -41,23 +41,60 @@ class InventionController extends Controller
     
         $inventionType = InventionType::with('needs.parent')->findOrFail($validated['invention_type']);
     
-        // verificar si el invento requiere materiales
-        if ($inventionType->name !== 'Trampa') {
+        // verificar si el invento requiere material principal (sin consumir todavía)
+        $inventoryMaterial = null;
+        if ($inventionType->requiresMaterial()) {
             if (!$materialId) {
                 return view('zones.invent', compact('zone', 'inventoryMaterials', 'inventionTypes', 'user'))
                     ->with('error', 'Debes seleccionar un material para este invento.');
             }
-    
+
             $inventoryMaterial = $user->inventory->materials->firstWhere('material_id', $materialId);
             if (!$inventoryMaterial || $inventoryMaterial->quantity < 1) {
                 return view('zones.invent', compact('zone', 'inventoryMaterials', 'inventionTypes', 'user'))
                     ->with('error', 'No tienes suficientes materiales para crear este invento.');
             }
-            // restar material del inventario
-        $inventoryMaterial->quantity -= 1;
-        $inventoryMaterial->save();
+
+            // el material debe ser de una categoría admitida por el invento
+            $category = optional($inventoryMaterial->material->materialType)->category;
+            if (!$inventionType->acceptsMaterialCategory($category)) {
+                return view('zones.invent', compact('zone', 'inventoryMaterials', 'inventionTypes', 'user'))
+                    ->with('error', 'Con ' . $inventoryMaterial->material->name . ' no puedes forjar ' . $inventionType->name
+                        . '. Necesitas material de tipo: ' . implode(' o ', $inventionType->material_types) . '.');
+            }
         }
-    
+
+        // ingredientes extra (Fósforo, etc.): validar disponibilidad antes de consumir nada
+        $extraMaterials = $inventionType->extra_materials ?? [];
+        foreach ($extraMaterials as $req) {
+            $reqQty = $req['qty'] ?? 1;
+            $owned = $user->inventory->materials
+                ->filter(fn($im) => optional($im->material)->name === $req['name'])
+                ->sum('quantity');
+            if ($owned < $reqQty) {
+                return view('zones.invent', compact('zone', 'inventoryMaterials', 'inventionTypes', 'user'))
+                    ->with('error', 'Te falta el ingrediente ' . $req['name'] . ' (necesitas ' . $reqQty . ') para forjar ' . $inventionType->name . '.');
+            }
+        }
+
+        // consumir material principal
+        if ($inventoryMaterial) {
+            $inventoryMaterial->quantity -= 1;
+            $inventoryMaterial->save();
+        }
+
+        // consumir ingredientes extra (de cualquier depósito que tenga el material)
+        foreach ($extraMaterials as $req) {
+            $remaining = $req['qty'] ?? 1;
+            foreach ($user->inventory->materials->filter(fn($im) => optional($im->material)->name === $req['name'] && $im->quantity > 0) as $im) {
+                $take = min($remaining, $im->quantity);
+                $im->quantity -= $take;
+                $im->save();
+                $remaining -= $take;
+                if ($remaining <= 0) break;
+            }
+        }
+
         // verificar que si el invento requiere otros inventos, el usuario haya seleccionado todos
         if (!$inventionType->needs->isEmpty()) {
             $requiredInventions = $inventionType->needs->pluck('parent_id')->toArray();

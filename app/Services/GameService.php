@@ -45,82 +45,90 @@ class GameService
 
     public function calculateCombatPoints(Zone $zone)
     {
-        $baseDefense = $zone->defense;
+        $baseDefense = $zone->effectiveDefense(); // la tormenta baja la defensa
         $controlledByTeam = optional($zone->team)->id === optional(auth()->user())->team_id;
 
-        // defensores en la zona
-        $defenders = $zone->users()->with(['inventory.inventions.stats'])->get();
+        // === DEFENSA ===
+        // La mandan los stats: defensa + salud de los defensores. El genérico
+        // 'points' ya NO infla la defensa (lo deciden los stats que se forjan).
+        $defenders = $zone->users()->players()->with(['inventory.inventions.stats'])->get();
 
-
-
-        //Defensa de los jugadores
-        $playerDefense = 0;
-        $totalDefensePoints = 0;
-        $teamDefense = 0;
-        $bonusTimeDefense = count($defenders) * 2; // Min +2 por defensor presente
-        $totalPlayerPoints = 0; //  puntos base de cada jugador
+        $playerDefense = 0;   // Σ (defensa + salud) de los defensores
+        $teamDefense = 0;     // refuerzo si el equipo controla la zona
+        $bonusTimeDefense = count($defenders) * 2; // +2 por defensor presente
 
         foreach ($defenders as $player) {
-            // suma de stats de defensa y salud
-            $defenseStat = $this->userService->getTotalStats($player)['defensa'] ?? 0;
-            $healthStat = $this->userService->getTotalStats($player)['salud'] ?? 0;
-            $playerDefense += $defenseStat + $healthStat;
-
-            //  puntos de los inventos equipados
-            $totalDefensePoints += $this->userService->getTotalPoints($player);
-
-            //  puntos base del jugador en la zona
-            $totalPlayerPoints += $player->points;
-
-            // Defensa del equipo si están en la zona
+            $s = $this->userService->getTotalStats($player);
+            $def = ($s['defensa'] ?? 0) + ($s['salud'] ?? 0);
+            $playerDefense += $def;
             if ($controlledByTeam) {
-                $teamDefense += $defenseStat + $healthStat;
+                $teamDefense += (int) floor($def / 2); // refuerzo: la mitad
             }
-
-            // Bonus por tiempo 
-            if (session()->has('zone_entry_time')) {
-            }
-            $timeInZone = now()->diffInSeconds(session('zone_entry_time'));
-            $bonusTimeDefense += floor($timeInZone / 1800) * 2; // +2 por cada  30 min.
         }
 
+        // bonus por tiempo atrincherado (condiciones de la zona)
+        if (session()->has('zone_entry_time')) {
+            $timeInZone = now()->diffInSeconds(session('zone_entry_time'));
+            $bonusTimeDefense += floor($timeInZone / 1800) * 2; // +2 cada 30 min
+        }
 
-        // calcular la defensa total
-        $randomFactor = rand(70, 130) / 100;
-        $totalDefense = round(
-            $baseDefense + ($playerDefense + $totalDefensePoints + $bonusTimeDefense + $teamDefense + $totalPlayerPoints) * $randomFactor
-        );
+        // factor de azar por condiciones (lluvia, enfermedades...): varía por consulta
+        $defenseFactor = rand(70, 130) / 100;
+        $totalDefense = round($baseDefense + ($playerDefense + $teamDefense + $bonusTimeDefense) * $defenseFactor);
 
-        // Ataque
+        // === ATAQUE (posicional) ===
+        // El ataque lo lanza un jugador desde una zona propia adyacente; la fuerza
+        // = suma de TODOS los compañeros de su equipo presentes en esa zona de origen
+        // (la guarnición). Espejo de la defensa. velocidad = iniciativa; suerte = tirada.
+        $attackTypeId = Type::where('name', 'attack')->first()->id;
         $attackAction = Action::where('actionable_id', $zone->id)
             ->where('actionable_type', Zone::class)
-            ->where('type_id', Type::where('name', 'attack')->first()->id)
+            ->where('type_id', $attackTypeId)
             ->where('finish', false)
+            ->latest('created_at')
             ->first();
 
-        $attackPoints = 0;
-        $totalAttackPoints = 0;
-
+        $attackBase = 0;
+        $initiativeBonus = 0;
+        $luck = 0;
         if ($attackAction) {
-            $attacker = User::with(['inventory.inventions.stats'])->find($attackAction->user_id);
-
-            if ($attacker && $attacker->zone_id !== $zone->id) {
-                $baseAttack =  $this->userService->getTotalStats($attacker)['ataque'] ?? 0;
-                $totalAttackPoints = $this->userService->getTotalPoints($attacker);
-                $attackPoints = round(($baseAttack + $totalAttackPoints) * $randomFactor);
+            $initiator = User::find($attackAction->user_id);
+            $origin = $initiator ? $initiator->zone : null;
+            if ($origin && $initiator->team_id) {
+                $garrison = User::where('zone_id', $origin->id)
+                    ->where('team_id', $initiator->team_id)
+                    ->players()
+                    ->with(['inventory.inventions.stats'])
+                    ->get();
+                foreach ($garrison as $g) {
+                    $s = $this->userService->getTotalStats($g);
+                    $attackBase += $s['ataque'] ?? 0;
+                    $initiativeBonus += $s['velocidad'] ?? 0;
+                    $luck += $s['suerte'] ?? 0;
+                }
             }
         }
 
-        return compact(
-            'totalDefense',
-            'playerDefense',
-            'bonusTimeDefense',
-            'attackPoints',
-            'totalDefensePoints',
-            'totalAttackPoints',
-            'totalPlayerPoints',
-            'defenders'
-        );
+        $luckBonus = min(0.30, $luck * 0.01); // suerte mejora la tirada, máx +0.30
+        $attackFactor = rand(70, 130) / 100 + $luckBonus;
+        $attackPoints = round(($attackBase + $initiativeBonus) * $attackFactor);
+
+        return [
+            'totalDefense' => $totalDefense,
+            'playerDefense' => $playerDefense,
+            'teamDefense' => $teamDefense,
+            'bonusTimeDefense' => $bonusTimeDefense,
+            'attackPoints' => $attackPoints,
+            'attackBase' => $attackBase,
+            'initiativeBonus' => $initiativeBonus,
+            'luckBonus' => $luckBonus,
+            'defenseFactor' => $defenseFactor,
+            'attackFactor' => $attackFactor,
+            'defenders' => $defenders,
+            // alias para vistas existentes
+            'totalDefensePoints' => $teamDefense,
+            'totalAttackPoints' => $initiativeBonus,
+        ];
     }
 
 
@@ -140,77 +148,89 @@ class GameService
         return null;
     }
 
-    public function resolveAttack(Zone $zone)
+    public function resolveAttack(Zone $zone, ?array $combatData = null)
     {
-        // obtener los datos de combate
-        $combatData = $this->calculateCombatPoints($zone);
+        // usa el combate ya calculado (lo que ve el jugador == lo que decide).
+        $combatData = $combatData ?: $this->calculateCombatPoints($zone);
         $totalDefense = $combatData['totalDefense'];
         $attackPoints = $combatData['attackPoints'];
 
-        // aplicar factor de aleatoriedad (0.7 - 1.3)
-        $randomFactor = rand(70, 130) / 100;
-        $attackPoints *= $randomFactor;
-
-        // determinar el equipo atacante y defensor
-        $attackAction = Action::where('actionable_id', $zone->id)
+        // todas las acciones de ataque pendientes en la zona
+        $attackActions = Action::where('actionable_id', $zone->id)
             ->where('actionable_type', Zone::class)
             ->where('type_id', Type::where('name', 'attack')->first()->id)
             ->where('finish', false)
-            ->first();
+            ->get();
 
-        if (!$attackAction) {
+        if ($attackActions->isEmpty()) {
             return "No hay ataque registrado.";
         }
 
-        $attacker = User::find($attackAction->user_id);
-        $attackingTeam = $attacker->team_id;
+        $attackingTeam = optional(User::find($attackActions->first()->user_id))->team_id;
         $defendingTeam = $zone->team_id;
 
-        // determinar el resultado del combate
         $winnerTeamId = null;
         $resultDescription = "";
 
         if ($attackPoints > $totalDefense) {
-            // ataque exitoso: la zona se vuelve neutral
-            $winnerTeamId = null;
-            $resultDescription = "¡Ataque exitoso! La zona ahora es neutral.";
+            // ataque exitoso: la zona pasa directamente al equipo atacante
+            $winnerTeamId = $attackingTeam;
+            $resultDescription = "¡Ataque exitoso! La zona pasa a tu equipo.";
+            $zone->update(['team_id' => $attackingTeam]);
 
-            // resetear la zona (eliminar equipo dueño)
-            $zone->update(['team_id' => null]);
-
-            // cancelar actividades en progreso en la zona ( por si habilitamos hacer mas de una accion)
-            Action::where('actionable_id', $zone->id)
-                ->where('actionable_type', Zone::class)
-                ->where('finish', false)
-                ->delete();
-        } elseif ($attackPoints < $totalDefense) {
-            // defensa exitosa: los atacantes pierden
-            $winnerTeamId = $defendingTeam;
-            $resultDescription = "¡El equipo defensor ha ganado!";
-
-            // los atacantes pierden sus inventos equipados
-
-            if ($attacker->inventory) {
-                foreach ($attacker->inventory->inventions as $invention) {
-                    $invention->delete();
+            // mérito por conquistar: a la guarnición de la zona de origen
+            $initiator = User::find($attackActions->first()->user_id);
+            if ($initiator && $initiator->zone_id) {
+                foreach (User::where('zone_id', $initiator->zone_id)->where('team_id', $attackingTeam)->players()->get() as $g) {
+                    $g->addMerit(20);
                 }
             }
         } else {
-            // empate => gana el equipo defensor
+            // la defensa aguanta (incluye empate)
             $winnerTeamId = $defendingTeam;
-            $resultDescription = "¡Empate! La zona se mantiene bajo control del equipo defensor.";
+            $resultDescription = $attackPoints == $totalDefense
+                ? "¡Empate! La zona se mantiene bajo control del equipo defensor."
+                : "¡El equipo defensor ha resistido el ataque!";
+
+            // castigo: cada atacante pierde ALGUNOS inventos (los más débiles)
+            $lost = [];
+            foreach ($attackActions->pluck('user_id')->unique() as $aid) {
+                $attacker = User::find($aid);
+                if ($attacker) {
+                    $lost = array_merge($lost, $this->loseSomeInventions($attacker));
+                }
+            }
+            if (!empty($lost)) {
+                $resultDescription .= ' Los atacantes pierden: ' . implode(', ', $lost) . '.';
+            }
+
+            // recompensa: los defensores ganan experiencia y mérito por aguantar
+            $defenders = $zone->users()->players()->get();
+            foreach ($defenders as $d) {
+                $d->points = ($d->points ?? 0) + 5;
+                $d->merit = (int) ($d->merit ?? 0) + 10;
+                $d->save();
+            }
+            if ($defenders->isNotEmpty()) {
+                $resultDescription .= ' Los defensores ganan +5 de experiencia y +10 de mérito por resistir.';
+            }
         }
 
-        // registrar el combate en la base de datos
+        // CERRAR las acciones para que el combate no se vuelva a resolver
+        Action::where('actionable_id', $zone->id)
+            ->where('actionable_type', Zone::class)
+            ->where('type_id', Type::where('name', 'attack')->first()->id)
+            ->where('finish', false)
+            ->update(['finish' => true]);
+
         $combat = Combat::create([
-            'random_factor' => $randomFactor,
+            'random_factor' => $combatData['attackFactor'] ?? 1,
             'score' => $attackPoints - $totalDefense,
             'attacker_team_id' => $attackingTeam,
             'defender_team_id' => $defendingTeam,
             'winner_team_id' => $winnerTeamId,
         ]);
 
-        // guardar el resultado en la tabla Result
         Result::create([
             'result' => $resultDescription,
             'description' => "Combate en la zona " . $zone->name,
@@ -219,6 +239,29 @@ class GameService
         ]);
 
         return $resultDescription;
+    }
+
+    /**
+     * El atacante derrotado pierde ~1/3 de sus inventos, los de menor valor
+     * (points) primero. No lo pierde todo: castigo real pero no demoledor.
+     */
+    private function loseSomeInventions(User $attacker): array
+    {
+        if (!$attacker->inventory) {
+            return [];
+        }
+        $inventions = $attacker->inventory->inventions;
+        $count = $inventions->count();
+        if ($count === 0) {
+            return [];
+        }
+        $toLose = max(1, (int) floor($count / 3));
+        $lost = [];
+        foreach ($inventions->sortBy('points')->take($toLose) as $invention) {
+            $lost[] = $invention->name;
+            $invention->delete();
+        }
+        return $lost;
     }
 
     /**

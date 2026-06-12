@@ -157,7 +157,7 @@
 <script>
     setTimeout(() => {
         window.location.href = "{{ route('adventure.run') }}";
-    }, 19000);
+    }, 21000);
 </script>
 
 @endsection

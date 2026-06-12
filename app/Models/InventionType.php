@@ -12,11 +12,30 @@ class InventionType extends Model
     protected $connection = 'mongodb'; 
 
     protected $fillable = [
-        'type',
+        'name',
         'level',
         'materialtype_id',
-        'image'
+        'image',
+        'icon',           // icono FA de respaldo cuando no hay imagen
+        'material_types', // categorías de material admitidas (p.ej. ['Fibra'])
+        'extra_materials',// ingredientes extra por nombre: [['name'=>'Fósforo','qty'=>1]]
     ];
+
+    /**
+     * ¿Este invento consume material? (la Trampa, p.ej., no usa ninguno)
+     */
+    public function requiresMaterial(): bool
+    {
+        return !empty($this->material_types);
+    }
+
+    /**
+     * ¿La categoría de material indicada sirve para forjar este invento?
+     */
+    public function acceptsMaterialCategory(?string $category): bool
+    {
+        return $category !== null && in_array($category, $this->material_types ?? [], true);
+    }
 
     /**
      * Relación N:1 con MaterialType.

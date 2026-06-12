@@ -51,6 +51,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware(['auth'])->group(function () {
     Route::resource('zones', ZoneController::class); // Vista donde el usuario entra después de loguearse
     Route::post('/import-zones', [ZoneController::class, 'importZones'])->name('import.zones');
+    Route::post('zones/{zone}/mina', [ZoneController::class, 'buildMine'])->name('zones.buildMine');
+    Route::get('ranking', [PlayerController::class, 'ranking'])->name('ranking');
 
 
     Route::get('teams/transfer', [TeamController::class, 'transfer'])->name('teams.transfer');

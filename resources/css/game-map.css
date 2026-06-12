@@ -441,6 +441,62 @@
     50%     { transform: translateX(-50%) translateY(-6px); }
 }
 
+/* ---- Eventos de mundo sobre el mapa (badge + halo pulsante) ---- */
+.warmap-event {
+    position: absolute;
+    top: -14px; right: -14px;
+    z-index: 4;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 12px; color: #fff;
+    border: 2px solid rgba(255,255,255,.85);
+    box-shadow: 0 2px 5px rgba(0,0,0,.6);
+    pointer-events: none;
+    animation: wm-event-pop .5s ease-out both;
+}
+.warmap-event--tormenta { background: radial-gradient(circle at 35% 30%, #8fb4e8, #2f5da6); }
+.warmap-event--bonanza  { background: radial-gradient(circle at 35% 30%, #f6d98a, #c4901e); color: #3a2a06; }
+.warmap-event--plaga    { background: radial-gradient(circle at 35% 30%, #d98e8a, #9a322c); }
+
+/* halo pulsante alrededor del pin de la zona con evento */
+.warmap-marker.has-event .warmap-marker__pin::after {
+    content: "";
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    animation: wm-event-pulse 1.6s ease-out infinite;
+    pointer-events: none;
+}
+.warmap-marker.has-event--tormenta .warmap-marker__pin::after { color: #5b8fd6; }
+.warmap-marker.has-event--bonanza  .warmap-marker__pin::after { color: #e0a93b; }
+.warmap-marker.has-event--plaga    .warmap-marker__pin::after { color: #c4544c; }
+
+@keyframes wm-event-pulse {
+    0%   { transform: scale(.9); opacity: .9; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+@keyframes wm-event-pop {
+    0%   { transform: scale(0); }
+    70%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+/* mina activa */
+.warmap-mine {
+    position: absolute;
+    top: -14px; left: -14px;
+    z-index: 4;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    font-size: 11px; color: #3a2a06;
+    background: radial-gradient(circle at 35% 30%, #cdb78f, #7d6b58);
+    border: 2px solid rgba(255,255,255,.7);
+    box-shadow: 0 2px 5px rgba(0,0,0,.6);
+    pointer-events: none;
+}
+
 .warmap-hint {
     text-align: center;
     margin: .55rem 0 0;
@@ -700,6 +756,55 @@
 .btn-action--collect { background: linear-gradient(180deg, #e0a93b, #b87f1e); color: var(--wood-dark); }
 .btn-action--invent  { background: linear-gradient(180deg, #8a6cc4, #5e4596); }
 .btn-action--attack  { background: linear-gradient(180deg, #d8362e, #8a1c18); grid-column: 1 / -1; }
+.btn-action--mine    { background: linear-gradient(180deg, #7d6b58, #4f4233); }
+.btn-action--mine.is-active { background: linear-gradient(180deg, #2f7d4f, #1f5436); cursor: default; }
+
+/* rango del jugador */
+.chip--rank { background: linear-gradient(180deg, #6b4fa0, #3f2d66); color: #f1e7ff; border-color: #8a6cc4; }
+.profile-next { color: var(--text-mute); font-weight: 600; font-size: .78em; }
+
+/* evento de mundo (banner en la zona) */
+.world-event {
+    display: flex; align-items: center; gap: .7rem;
+    padding: .7rem 1rem; margin: 0 0 1rem; border-radius: var(--r-sm);
+    border: 1px solid; font-size: .9rem;
+}
+.world-event .fas { font-size: 1.3rem; }
+.world-event--tormenta { background: rgba(90,120,180,.18); border-color: #5b7da6; color: #cdddf5; }
+.world-event--bonanza  { background: rgba(224,169,59,.16); border-color: #e0a93b; color: #f3dca0; }
+.world-event--plaga    { background: rgba(170,60,55,.18); border-color: #b8463f; color: #f0c2bf; }
+
+/* feed de actividad en la barra del mapa */
+.side-feed {
+    display: flex; align-items: center; gap: .55rem;
+    padding: .4rem .1rem; font-size: .82rem; color: var(--text-dim);
+    border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.side-feed:last-child { border-bottom: 0; }
+.side-feed .fas { width: 16px; text-align: center; color: var(--brass); }
+.side-feed--team .fas     { color: #8fb4e8; }
+.side-feed--tormenta .fas { color: #5b8fd6; }
+.side-feed--bonanza .fas  { color: #e0a93b; }
+.side-feed--plaga .fas    { color: #c4544c; }
+
+/* botón de "volver" tras completar una acción (sin auto-salto) */
+.action-done__btn { display: inline-block; margin-left: .6rem; vertical-align: middle; }
+
+/* ranking */
+.ranking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.2rem; }
+.ranking-block__title { font-family: var(--font-display); color: var(--brass-light); margin: 0 0 1rem; }
+.ranking-list { list-style: none; margin: 0; padding: 0; }
+.ranking-row {
+    display: flex; align-items: center; gap: .7rem;
+    padding: .55rem .3rem; border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.ranking-row.is-me { background: rgba(241,210,122,.1); border-radius: var(--r-sm); }
+.ranking-pos { width: 1.6rem; text-align: center; font-family: var(--font-display); color: var(--brass); font-weight: 700; }
+.ranking-name { flex: 1; display: flex; flex-direction: column; font-weight: 600; }
+.ranking-team { color: var(--text-mute); font-size: .72rem; font-weight: 400; }
+.ranking-merit { color: var(--brass-light); font-family: var(--font-display); min-width: 2.4rem; text-align: right; }
+.ranking-hint { color: var(--text-mute); font-size: .78rem; margin: .8rem 0 0; font-style: italic; }
+.ranking-empty { color: var(--text-mute); padding: .6rem 0; }
 
 /* ============================================================
    HUD del mapa (facción · territorios · música)
@@ -1029,9 +1134,42 @@
 }
 .forge-opt__name { font-family: var(--font-display); font-weight: 700; font-size: .9rem; }
 .forge-opt__sub { font-size: .72rem; color: var(--text-mute); }
+.forge-opt__mats {
+    font-size: .68rem; letter-spacing: .03em; text-transform: uppercase;
+    color: var(--brass); font-weight: 700;
+}
 .forge-opt__img { width: 64px; height: 64px; object-fit: contain; }
-.forge-opt--item.is-locked { opacity: .45; cursor: not-allowed; }
-.forge-opt--item.is-locked:hover .forge-opt__body { border-color: var(--line); transform: none; }
+.forge-opt.is-locked { opacity: .4; cursor: not-allowed; }
+.forge-opt.is-locked:hover .forge-opt__body { border-color: var(--line); transform: none; }
+
+/* pista y bloque de material oculto cuando el invento no usa material */
+.forge-hint { font-size: .82rem; color: var(--text-mute); margin: 0 0 .8rem; font-style: italic; }
+.forge-hint.is-hidden, .forge-block.is-hidden { display: none; }
+
+/* indicador de potencia del material (según densidad) */
+.forge-pow {
+    font-size: .64rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    padding: .1rem .4rem; border-radius: 999px; border: 1px solid currentColor;
+}
+.forge-pow--low  { color: #8fb98f; }
+.forge-pow--mid  { color: #d6b25e; }
+.forge-pow--high { color: #e8804f; }
+
+/* icono de invento de respaldo (sin imagen) */
+.forge-opt__icon {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem; color: var(--brass-light);
+}
+
+/* color por familia de material */
+.mat-fam--roca     { color: #b7a98f; }
+.mat-fam--mineral  { color: #6fd2e8; }
+.mat-fam--arena    { color: #e6cf8a; }
+.mat-fam--metal    { color: #c9d2dc; }
+.mat-fam--madera   { color: #b07a44; }
+.mat-fam--fibra    { color: #8fc36b; }
+.mat-fam--organico { color: #6fce8a; }
+.mat-fam--estelar  { color: #c89bf0; }
 
 .forge-submit { text-align: center; }
 .forge-recipes__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; }

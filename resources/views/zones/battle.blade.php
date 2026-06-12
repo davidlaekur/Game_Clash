@@ -68,12 +68,12 @@
         <h3 class="battle-block__title"><i class="fas fa-scroll" aria-hidden="true"></i> Desglose</h3>
         <ul class="battle-breakdown">
             <li><span><i class="fas fa-shield-alt" aria-hidden="true"></i> Defensa base de la zona</span><b>{{ $zone->defense }}</b></li>
-            <li><span><i class="fas fa-shield-alt" aria-hidden="true"></i> Defensa por stats</span><b>{{ $playerDefense }}</b></li>
-            <li><span><i class="fas fa-shield-alt" aria-hidden="true"></i> Defensa por inventos</span><b>{{ $totalDefensePoints }}</b></li>
+            <li><span><i class="fas fa-shield-alt" aria-hidden="true"></i> Defensa por stats (defensa + salud)</span><b>{{ $playerDefense }}</b></li>
+            <li><span><i class="fas fa-users" aria-hidden="true"></i> Refuerzo de equipo</span><b>{{ $totalDefensePoints }}</b></li>
             <li><span><i class="fas fa-hourglass-half" aria-hidden="true"></i> Bonus por tiempo</span><b>{{ $bonusTimeDefense }}</b></li>
-            <li><span><i class="fas fa-fire" aria-hidden="true"></i> Ataque base</span><b>{{ $attackPoints }}</b></li>
-            <li><span><i class="fas fa-fire" aria-hidden="true"></i> Ataque por inventos</span><b>{{ $totalAttackPoints }}</b></li>
-            <li><span><i class="fas fa-dice" aria-hidden="true"></i> Factor de aleatoriedad</span><b>70% – 130%</b></li>
+            <li><span><i class="fas fa-khanda" aria-hidden="true"></i> Ataque total (con iniciativa)</span><b>{{ $attackPoints }}</b></li>
+            <li><span><i class="fas fa-bolt" aria-hidden="true"></i> Iniciativa (velocidad)</span><b>{{ $totalAttackPoints }}</b></li>
+            <li><span><i class="fas fa-dice" aria-hidden="true"></i> Azar + suerte</span><b>70% – 130%</b></li>
         </ul>
     </div>
 

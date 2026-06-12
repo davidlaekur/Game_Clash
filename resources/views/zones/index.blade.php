@@ -17,6 +17,7 @@
         if ($zone->team_id) {
             $ownership = $zone->team_id === $myTeamId ? 'mine' : 'enemy';
         }
+        $ev = $zone->activeEvent();
         return [
             'id'        => $zone->id,
             'name'      => $zone->name,
@@ -28,6 +29,8 @@
             'ownership' => $ownership,
             'faction'   => $factionOf($zone->team->name ?? null),
             'current'   => Auth::user()->zone_id === $zone->id,
+            'mine_active' => ($zone->regen_boost ?? 1) > 1,
+            'event'     => $ev ? ['type' => $ev['type'], 'icon' => $ev['icon'], 'label' => $ev['label']] : null,
         ];
     })->values();
 
@@ -163,6 +166,19 @@
                     </div>
                 @empty
                     <p class="side-empty">Sin acciones en curso.</p>
+                @endforelse
+            </div>
+
+            {{-- Qué ocurre: actividad del equipo y del mundo --}}
+            <div class="panel side-block">
+                <h3 class="side-block__title"><i class="fas fa-satellite-dish" aria-hidden="true"></i> ¿Qué ocurre?</h3>
+                @forelse ($feed as $item)
+                    <div class="side-feed side-feed--{{ $item['kind'] }}">
+                        <i class="fas {{ $item['icon'] }}" aria-hidden="true"></i>
+                        <span>{{ $item['text'] }}</span>
+                    </div>
+                @empty
+                    <p class="side-empty">Todo tranquilo en el reino…</p>
                 @endforelse
             </div>
         </aside>

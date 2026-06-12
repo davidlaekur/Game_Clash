@@ -14,7 +14,8 @@ class InventionPointsService
         if ($inventionType->name === 'Trampa') {
             return [
                 'points' => 7,
-                'efficiency' => 50
+                'efficiency' => 50,
+                'statFactor' => 1,
             ];
         }
       // Si el invento tiene un material asociado, calculamos en función de la densidad
@@ -36,16 +37,28 @@ class InventionPointsService
         $efficiency = min(100, max(10, $efficiency));  // Limitar la eficiencia entre 10 y 100
 
         return [
-            'points' => $points, 
-            'efficiency' => $efficiency
+            'points' => $points,
+            'efficiency' => $efficiency,
+            'statFactor' => $this->statFactor($material->density),
         ];
     }
 
     // Si no hay material asociado, devolver valores por defecto
     return [
         'points' => $inventionType->level, // El mínimo de puntos será el nivel del invento
-        'efficiency' => 15
+        'efficiency' => 15,
+        'statFactor' => 1,
     ];
+}
+
+    /**
+     * Multiplicador de stats según densidad del material: a mayor densidad,
+     * más ataque/defensa/etc. Escala suave (sqrt) acotada a [0.85, 1.6] para
+     * que metales potencien sin romper el balance y madera/fibra no inutilice.
+     */
+    private function statFactor(float $density): float
+    {
+        return round(min(1.6, max(0.85, 0.7 + sqrt($density) / 5)), 2);
 
 }
 }

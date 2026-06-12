@@ -37,8 +37,7 @@
                 clearInterval(timer);
                 const t = document.getElementById('action-timer');
                 t.classList.add('action-timer--done');
-                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Has llegado a la zona.';
-                setTimeout(() => { window.location.href = "{{ route('zones.show', $zone->id) }}"; }, 1200);
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Has llegado a la zona. <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost action-done__btn">Ver la zona →</a>';
             }
         }, 1000);
     }

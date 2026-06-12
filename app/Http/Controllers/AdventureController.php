@@ -10,6 +10,10 @@ use App\Models\UserAdventure;
 use App\Models\Scenario;
 use App\Models\Option;
 use App\Models\Item;
+use App\Models\User;
+use App\Models\Material;
+use App\Models\Inventory;
+use App\Models\InventoryMaterial;
 use App\Services\StarWarsApiService;
 use Illuminate\Support\Facades\Auth;
 
@@ -32,8 +36,10 @@ class AdventureController extends Controller
      */
     public function showIntro()
     {
-        return view('adventures.intro'); 
-        
+        if (Auth::user()->rankLevel() < 2) {
+            return redirect()->route('home')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura. Sigue destacando en combate.');
+        }
+        return view('adventures.intro');
     }
 
 
@@ -43,6 +49,9 @@ class AdventureController extends Controller
     public function runAdventure()
     {
         $user = Auth::user();
+        if ($user->rankLevel() < 2) {
+            return redirect()->route('home')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura.');
+        }
         $userAdventure = $this->obtenerAventuraActiva($user);
 
         if (!$userAdventure) {
@@ -203,6 +212,9 @@ class AdventureController extends Controller
         // ponemos a true la aventura y ponemos a null el escenario
         $userAdventure->update(['completed' => true, 'scenario_id' => null]);
 
+        // premio jugable: materia estelar al inventario (habilita inventos de élite)
+        $stellarGranted = $this->grantStellarMaterial($userAdventure->user_id, 1);
+
         // premios de la aventura
         $rewards = Item::where('itemable_id', $userAdventure->adventure_id)
             ->where('itemable_type', 'App\Models\Adventure')
@@ -237,7 +249,46 @@ class AdventureController extends Controller
             }
         }
 
+        if ($stellarGranted) {
+            $successMessage .= " Has traído <strong>Aleación estelar</strong> del espacio: úsala para forjar inventos de élite.";
+        }
+
         // cargo los premios y recompensas en la vista del jugador para mostrarlos
         return redirect()->route('players.show', ['player' => $userAdventure->user_id])->with(['success' => $successMessage, 'rewards' => $rewards, 'earnedItems' => $earnedItems]);
+    }
+
+    /**
+     * Añade materia estelar al inventario personal del jugador (premio de aventura).
+     * La materia estelar no se recolecta en zonas: solo llega de las aventuras.
+     */
+    private function grantStellarMaterial($userId, int $amount = 1): bool
+    {
+        $user = User::find($userId);
+        $material = Material::where('name', 'Aleacion estelar')->first();
+        if (!$user || !$material) {
+            return false;
+        }
+
+        $inventory = Inventory::firstOrCreate(
+            ['inventoriable_id' => $user->id, 'inventoriable_type' => get_class($user)],
+            ['type' => 'personal', 'name' => 'Inventario de ' . $user->name]
+        );
+
+        $line = InventoryMaterial::where('inventory_id', $inventory->_id)
+            ->where('material_id', $material->_id)
+            ->first();
+
+        if ($line) {
+            $line->quantity += $amount;
+            $line->save();
+        } else {
+            InventoryMaterial::create([
+                'inventory_id' => $inventory->_id,
+                'material_id' => $material->_id,
+                'quantity' => $amount,
+            ]);
+        }
+
+        return true;
     }
 }

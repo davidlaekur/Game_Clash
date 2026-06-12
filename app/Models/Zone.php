@@ -23,7 +23,57 @@ class Zone extends Model
         'team_id',
         'image',
         'image_detail',
+        'regen_boost',   // multiplicador de regeneración de recursos (mina)
+        'mine_ready_at', // cuándo termina de construirse la mina (en 2º plano)
+        'event_type',      // evento de mundo activo (tormenta/bonanza/plaga)
+        'event_ends_at',   // cuándo caduca el evento
+        'event_magnitude', // intensidad del evento (p.ej. defensa que resta la tormenta)
     ];
+
+    /**
+     * Evento de mundo activo (o null si no hay o ya caducó).
+     */
+    public function activeEvent(): ?array
+    {
+        if (!$this->event_type || !$this->event_ends_at) {
+            return null;
+        }
+        if (\Carbon\Carbon::parse($this->event_ends_at)->isPast()) {
+            return null;
+        }
+        $meta = config('world_events')[$this->event_type] ?? null;
+        if (!$meta) {
+            return null;
+        }
+        return $meta + [
+            'type' => $this->event_type,
+            'magnitude' => (int) ($this->event_magnitude ?? 0),
+            'remaining' => (int) now()->diffInSeconds($this->event_ends_at),
+        ];
+    }
+
+    /** Defensa efectiva: la tormenta la reduce mientras dura. */
+    public function effectiveDefense(): int
+    {
+        $d = (int) $this->defense;
+        if ($this->activeEvent() && $this->event_type === 'tormenta') {
+            $d -= (int) ($this->event_magnitude ?? 0);
+        }
+        return max(1, $d);
+    }
+
+    /** Multiplicador de regeneración por evento (bonanza acelera, plaga frena). */
+    public function eventRegenMultiplier(): float
+    {
+        if (!$this->activeEvent()) {
+            return 1.0;
+        }
+        return match ($this->event_type) {
+            'bonanza' => 2.5,
+            'plaga'   => 0.4,
+            default   => 1.0,
+        };
+    }
 
 
     /**

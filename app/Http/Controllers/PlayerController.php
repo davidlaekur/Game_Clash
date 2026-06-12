@@ -376,17 +376,15 @@ class PlayerController extends Controller
         // resolver la batalla
 
 
-        // obtener atacantes y defensores directamente
-        $attackers = User::whereIn('id', Action::where('actionable_id', $zone->id)
-            ->where('actionable_type', Zone::class)
-            ->where('type_id', Type::where('name', 'attack')->first()->id)
-            ->where('finish', false)
-            ->pluck('user_id'))
+        // atacantes = guarnición del equipo en la zona de origen (modelo posicional)
+        $attackers = User::where('zone_id', $originZone->id)
+            ->where('team_id', $user->team_id)
+            ->players()
             ->with(['stats', 'inventory.inventions.stats'])->get();
 
 
         // obtener defensores
-        $defenders = $zone->users()->with(['stats', 'inventory.inventions.stats'])->get();
+        $defenders = $zone->users()->players()->with(['stats', 'inventory.inventions.stats'])->get();
 
 
         foreach ($attackers as $attacker) {
@@ -403,8 +401,8 @@ class PlayerController extends Controller
 
 
 
-        // Resolver la batalla
-        $battleResult = $this->gameService->resolveAttack($zone);
+        // Resolver la batalla con los MISMOS datos que se muestran (una sola vez)
+        $battleResult = $this->gameService->resolveAttack($zone, $combatData);
 
         // enviar los datos a la vista de la batalla
         return view('zones.battle', [
@@ -421,5 +419,22 @@ class PlayerController extends Controller
             'defenders' => $defenders,
             'timeRemaining' => $action->duration,
         ]);
+    }
+
+    /**
+     * Ranking: jugadores por mérito y equipos por territorios.
+     */
+    public function ranking()
+    {
+        $players = User::players()->with('team')->get()
+            ->sortByDesc(fn($u) => (int) ($u->merit ?? 0))
+            ->take(15)->values();
+
+        $teams = \App\Models\Team::all()->map(fn($t) => (object) [
+            'name'  => $t->name,
+            'zones' => Zone::where('team_id', $t->id)->count(),
+        ])->sortByDesc('zones')->values();
+
+        return view('ranking', compact('players', 'teams'));
     }
 }

@@ -70,8 +70,7 @@
                 clearInterval(timer);
                 const t = document.getElementById('timer');
                 t.classList.add('action-timer--done');
-                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Recolección completada';
-                setTimeout(() => { window.location.href = "{{ route('zones.show', $zone->id) }}"; }, 1200);
+                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Recolección completada. <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost action-done__btn">Volver a la zona →</a>';
             }
         }, 1000);
     }

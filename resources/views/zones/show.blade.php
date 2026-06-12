@@ -17,6 +17,14 @@
         <div class="alert alert-danger">{{ $message }}</div>
     @enderror
 
+    @php $event = $zone->activeEvent(); @endphp
+    @if ($event)
+        <div class="world-event world-event--{{ $event['type'] }}">
+            <i class="fas {{ $event['icon'] }}" aria-hidden="true"></i>
+            <span><b>{{ $event['label'] }}</b> — {{ $event['desc'] }}@if($event['type'] === 'tormenta') (defensa −{{ $event['magnitude'] }})@endif</span>
+        </div>
+    @endif
+
     <div class="zone-grid">
         {{-- Columna izquierda: ilustración --}}
         <div class="zone-hero panel panel--framed">
@@ -91,6 +99,16 @@
                             @csrf
                             <button type="submit" class="btn-action btn-action--invent" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-lightbulb" aria-hidden="true"></i> Inventar</button>
                         </form>
+                        @if (($zone->regen_boost ?? 1) > 1)
+                            <span class="btn-action btn-action--mine is-active"><i class="fas fa-hard-hat" aria-hidden="true"></i> Mina activa (x{{ $zone->regen_boost }})</span>
+                        @elseif (!empty($mineRemaining) && $mineRemaining > 0)
+                            <span class="btn-action btn-action--mine" id="mine-building"><i class="fas fa-hard-hat" aria-hidden="true"></i> Construyendo mina · <span id="mineRemaining">{{ $mineRemaining }}</span>s</span>
+                        @else
+                            <form action="{{ route('zones.buildMine', $zone->id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn-action btn-action--mine" title="Cuesta 10 de metal + 15 de madera"><i class="fas fa-hard-hat" aria-hidden="true"></i> Construir mina</button>
+                            </form>
+                        @endif
                     @endif
 
                     @if ($user->team_id !== null && $zone->team_id !== $user->team_id && $zone->team_id !== null && $zoneAdjacent)
@@ -118,6 +136,19 @@
                 t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Acción completada';
                 // recarga para reflejar el estado real del servidor (acción finalizada,
                 // botones activos, propietario/defensa actualizados). Vale para cualquier acción.
+                setTimeout(() => { window.location.reload(); }, 1200);
+            }
+        }, 1000);
+    }
+
+    // cuenta atrás de la mina (2º plano): al terminar, recarga para activarla
+    let mineRemaining = parseInt(document.getElementById('mineRemaining')?.innerText || 0);
+    if (mineRemaining > 0) {
+        const mineTimer = setInterval(() => {
+            mineRemaining--;
+            document.getElementById('mineRemaining').innerText = mineRemaining;
+            if (mineRemaining <= 0) {
+                clearInterval(mineTimer);
                 setTimeout(() => { window.location.reload(); }, 1200);
             }
         }, 1000);

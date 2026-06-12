@@ -12,6 +12,7 @@
         <li><a href="{{ route('players.show', $u->id) }}" class="{{ request()->routeIs('players.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-user-shield" aria-hidden="true"></i> <span class="epic-menu__txt">Jugador</span></a></li>
         <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-shield-alt" aria-hidden="true"></i> <span class="epic-menu__txt">Equipo</span></a></li>
         <li><a href="{{ route('actions.index') }}" class="{{ request()->routeIs('actions.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-hourglass-half" aria-hidden="true"></i> <span class="epic-menu__txt">Acciones</span></a></li>
+        <li><a href="{{ route('ranking') }}" class="{{ request()->routeIs('ranking') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-trophy" aria-hidden="true"></i> <span class="epic-menu__txt">Ranking</span></a></li>
     </ul>
 
     {{-- HUD del jugador --}}

@@ -16,6 +16,8 @@ class MaterialTypeSeeder extends Seeder
             ['category' => 'Metal'],
             ['category' => 'Madera'],
             ['category' => 'Fibra'],
+            ['category' => 'Orgánico'], // plantas/alimento -> salud
+            ['category' => 'Estelar'],  // materia del espacio (premio de aventura)
         ];
 
         foreach ($materialTypes as $type) {

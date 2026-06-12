@@ -59,6 +59,30 @@ class MaterialSeeder extends Seeder
             ['name' => 'Bambu', 'category' => 'Fibra', 'density' => 0.7],
             ['name' => 'Algodon', 'category' => 'Fibra', 'density' => 1.54],
             ['name' => 'Lana', 'category' => 'Fibra', 'density' => 1.3],
+
+            // Orgánicos (plantas/alimento/curativos -> sustento, dan salud).
+            // Aquí 'density' = VALOR nutricional/medicinal: a más valor, más raro
+            // (menos probabilidad) y cura más. Coherente con minerales (valor->rareza+potencia).
+            ['name' => 'Bayas', 'category' => 'Orgánico', 'density' => 0.5],
+            ['name' => 'Setas', 'category' => 'Orgánico', 'density' => 0.55],
+            ['name' => 'Hierba medicinal', 'category' => 'Orgánico', 'density' => 0.7],
+            ['name' => 'Aloe', 'category' => 'Orgánico', 'density' => 0.9],
+            ['name' => 'Miel', 'category' => 'Orgánico', 'density' => 1.4],
+            ['name' => 'Raiz curativa', 'category' => 'Orgánico', 'density' => 1.8],
+            ['name' => 'Pescado', 'category' => 'Orgánico', 'density' => 0.8, 'landscapes' => ['isla', 'playa']],
+
+            // Fauna (caza -> comida -> salud). 'density' = valor: presas grandes
+            // (oso, bisonte) raras y muy nutritivas; pequeñas (conejo) comunes.
+            ['name' => 'Conejo', 'category' => 'Orgánico', 'density' => 0.7, 'landscapes' => ['pradera', 'bosque', 'meseta']],
+            ['name' => 'Cabra montes', 'category' => 'Orgánico', 'density' => 1.1, 'landscapes' => ['montaña', 'meseta']],
+            ['name' => 'Venado', 'category' => 'Orgánico', 'density' => 1.3, 'landscapes' => ['bosque', 'pradera', 'selva', 'jungla']],
+            ['name' => 'Jabali', 'category' => 'Orgánico', 'density' => 1.4, 'landscapes' => ['bosque', 'selva', 'pantano']],
+            ['name' => 'Foca', 'category' => 'Orgánico', 'density' => 1.5, 'landscapes' => ['glaciar', 'polo', 'playa']],
+            ['name' => 'Oso', 'category' => 'Orgánico', 'density' => 2.0, 'landscapes' => ['bosque', 'montaña', 'cueva']],
+            ['name' => 'Bisonte', 'category' => 'Orgánico', 'density' => 2.4, 'landscapes' => ['pradera', 'meseta']],
+
+            // Mineral igniter para el fuego
+            ['name' => 'Fosforo', 'category' => 'Mineral', 'density' => 1.82],
         ];
 
         foreach ($materials as $materialData) {
@@ -72,6 +96,7 @@ class MaterialSeeder extends Seeder
                 'Metal' => 10,
                 'Madera' => 50,
                 'Fibra' => 60,
+                'Orgánico' => 55,
                 default => 10,
             };
         
@@ -86,15 +111,69 @@ class MaterialSeeder extends Seeder
     
 
             
+            // sorteo PONDERADO: familias valiosas tienden a zonas de más defensa
+            // orográfica, con azar. 'landscapes' del material fija su hábitat (fauna).
+            $zoneId = $this->pickZone($zones, $materialType->category, $materialData['landscapes'] ?? null)->id;
+
             Material::create([
                 'name' => $materialData['name'],
                 'density' => $materialData['density'],
                 'probability' => $probability,
                 'efficiency' => $efficiency,
                 'quantity' => $quantity,
-                'zone_id' => $zones->random()->id,
+                'max_quantity' => $quantity,   // tope de regeneración
+                'regenerated_at' => now(),
+                'zone_id' => $zoneId,
                 'materialtype_id' => $materialType->id,
             ]);
         }
+
+        // material estelar: NO se recolecta (sin zona, stock 0). Solo se obtiene
+        // como premio de aventura, que lo añade al inventario del jugador.
+        $estelar = MaterialType::where('category', 'Estelar')->first();
+        if ($estelar) {
+            Material::create([
+                'name' => 'Aleacion estelar',
+                'density' => 8.0,
+                'probability' => 0,
+                'efficiency' => 10,
+                'quantity' => 0,
+                'zone_id' => null,
+                'materialtype_id' => $estelar->id,
+            ]);
+        }
+    }
+
+    /**
+     * Sorteo ponderado de zona: las familias valiosas (material_value alto) tienden
+     * a zonas de más defensa orográfica y las abundantes a las de menos, con azar
+     * para que cada partida sea distinta. El bioma (material_landscapes) actúa de
+     * filtro suave: las zonas no acordes son posibles pero mucho menos probables.
+     */
+    private function pickZone($zones, string $category, ?array $override = null)
+    {
+        $value = config('material_value')[$category] ?? 0.4;
+        $suitable = $override ?? (config('material_landscapes')[$category] ?? []);
+        $defMin = $zones->min('defense');
+        $span = max(1, $zones->max('defense') - $defMin);
+
+        $weighted = [];
+        $total = 0;
+        foreach ($zones as $z) {
+            $d = ($z->defense - $defMin) / $span;                 // 0..1 defensa orográfica
+            $affinity = $value * $d + (1 - $value) * (1 - $d);    // alto si valor y defensa coinciden
+            $biomeFit = in_array($z->landscape, $suitable, true) ? 1.0 : 0.10;
+            $w = ($affinity + 0.1) * $biomeFit;
+            $weighted[] = [$z, $w];
+            $total += $w;
+        }
+
+        $r = (mt_rand() / mt_getrandmax()) * $total;
+        foreach ($weighted as [$z, $w]) {
+            if (($r -= $w) <= 0) {
+                return $z;
+            }
+        }
+        return $zones->random();
     }
 }

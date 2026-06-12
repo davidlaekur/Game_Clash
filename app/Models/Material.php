@@ -14,10 +14,13 @@ class Material extends Model
 
     protected $fillable = [
         'name',
+        'density',
         'efficiency',
         'probability',
         'attributes',
         'quantity',
+        'max_quantity',     // tope al que regenera la zona
+        'regenerated_at',   // última regeneración (cálculo perezoso)
         'materialtype_id',
         'zone_id',
     ];
