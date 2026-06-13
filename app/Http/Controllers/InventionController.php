@@ -77,6 +77,24 @@ class InventionController extends Controller
             }
         }
 
+        // verificar prerrequisitos (inventos previos) ANTES de consumir nada:
+        // si no, se perdería el material aunque falte un requisito.
+        if (!$inventionType->needs->isEmpty()) {
+            $requiredInventions = $inventionType->needs->pluck('parent_id')->toArray();
+            $selectedInventionTypes = $user->inventory->inventions
+                ->whereIn('_id', $selectedInventions)
+                ->pluck('inventiontype_id')
+                ->toArray();
+
+            $missingInventions = array_diff($requiredInventions, $selectedInventionTypes);
+
+            if (!empty($missingInventions)) {
+                return view('zones.invent', compact('zone', 'inventoryMaterials', 'inventionTypes', 'user'))
+                    ->with('error', 'Debes seleccionar todos los inventos previos requeridos para crear este invento.');
+            }
+        }
+
+        // ── todo validado: a partir de aquí SÍ se consume ──
         // consumir material principal (si llega a 0 se elimina del inventario)
         if ($inventoryMaterial) {
             $inventoryMaterial->quantity -= 1;
@@ -95,22 +113,6 @@ class InventionController extends Controller
             }
         }
 
-        // verificar que si el invento requiere otros inventos, el usuario haya seleccionado todos
-        if (!$inventionType->needs->isEmpty()) {
-            $requiredInventions = $inventionType->needs->pluck('parent_id')->toArray();
-            $selectedInventionTypes = $user->inventory->inventions
-                ->whereIn('_id', $selectedInventions)
-                ->pluck('inventiontype_id')
-                ->toArray();
-    
-            $missingInventions = array_diff($requiredInventions, $selectedInventionTypes);
-    
-            if (!empty($missingInventions)) {
-                return view('zones.invent', compact('zone', 'inventoryMaterials', 'inventionTypes', 'user'))
-                    ->with('error', 'Debes seleccionar todos los inventos previos requeridos para crear este invento.');
-            }
-        }
-    
         // eliminar los inventos seleccionados del inventario
         foreach ($selectedInventions as $inventionId) {
             $inventionToRemove = $user->inventory->inventions->find($inventionId);
@@ -119,11 +121,14 @@ class InventionController extends Controller
             }
         }
     
-        // crear la acción, pero sin calcular aún los puntos
+        // calcular puntos/eficiencia AHORA y guardarlos EN LA ACCIÓN (no en sesión),
+        // para que cualquiera (segundo plano) pueda finalizar el invento.
         $baseDuration = $inventionType->level * 15;
         $duration = ($user->role->name === 'invent') ? $baseDuration : $baseDuration * 1.5;
         $duration *= app(\App\Services\UserService::class)->actionSpeedFactor($user); // ingenio acelera
-    
+
+        $pointsAndEfficiency = (new InventionPointsService())->calculatePointsAndEfficiency($inventionType, $materialId);
+
         Action::create([
             'user_id' => $user->id,
             'type_id' => Type::where('name', 'invent')->first()->id,
@@ -131,12 +136,10 @@ class InventionController extends Controller
             'actionable_type' => InventionType::class,
             'duration' => $duration,
             'finish' => false,
+            'invention_data' => $pointsAndEfficiency,
         ]);
-    
-        session()->put('actionBlocked', true);
 
-        $pointsAndEfficiency = (new InventionPointsService())->calculatePointsAndEfficiency($inventionType, $materialId);
-        session()->put('inventionPoints', $pointsAndEfficiency);
+        session()->put('actionBlocked', true);
 
         return view('zones.invent', compact('zone', 'inventoryMaterials', 'duration', 'inventionTypes', 'user'))
             ->with('success', 'Invento en proceso, por favor espera.')

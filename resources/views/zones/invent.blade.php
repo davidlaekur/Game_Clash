@@ -189,8 +189,8 @@
                 clearInterval(timer);
                 const t = document.getElementById('timer');
                 t.classList.add('action-timer--done');
-                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Invento completado. ' +
-                    '<button type="button" class="btn-epic action-done__btn" onclick="document.getElementById(\'forge-again-form\').submit()"><i class="fas fa-hammer"></i> Forjar otro</button> ' +
+                t.innerHTML = '<span class="action-done__msg"><i class="fas fa-check" aria-hidden="true"></i> Invento completado.</span>' +
+                    '<button type="button" class="btn-epic action-done__btn" onclick="document.getElementById(\'forge-again-form\').submit()"><i class="fas fa-hammer"></i> Forjar otro</button>' +
                     '<a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost action-done__btn">Volver a la zona</a>';
             }
         }, 1000);

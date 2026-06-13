@@ -58,6 +58,9 @@
             <button type="submit" class="btn-epic" {{ isset($timeRemaining) && $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-box" aria-hidden="true"></i> Confirmar recolección</button>
         </div>
     </form>
+
+    {{-- reabrir la recolección para encadenar otra sin salir de la zona --}}
+    <form id="collect-again-form" action="{{ route('players.collect', $zone->id) }}" method="POST" style="display:none;">@csrf</form>
 </div>
 
 <script>
@@ -70,7 +73,9 @@
                 clearInterval(timer);
                 const t = document.getElementById('timer');
                 t.classList.add('action-timer--done');
-                t.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Recolección completada. <a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost action-done__btn">Volver a la zona →</a>';
+                t.innerHTML = '<span class="action-done__msg"><i class="fas fa-check" aria-hidden="true"></i> Recolección completada.</span>' +
+                    '<button type="button" class="btn-epic action-done__btn" onclick="document.getElementById(\'collect-again-form\').submit()"><i class="fas fa-hand-holding"></i> Recolectar más</button>' +
+                    '<a href="{{ route('zones.show', $zone->id) }}" class="btn-ghost action-done__btn">Volver a la zona</a>';
             }
         }, 1000);
     }

@@ -788,7 +788,7 @@
 .side-feed--plaga .fas    { color: #c4544c; }
 
 /* botón de "volver" tras completar una acción (sin auto-salto) */
-.action-done__btn { display: inline-block; margin-left: .6rem; vertical-align: middle; }
+.action-done__btn { display: inline-block; margin: 0; vertical-align: middle; }
 
 /* feedback de respuesta en la aventura */
 .adv-feedback {
@@ -923,7 +923,11 @@
     max-width: 560px; font-size: 1.05rem;
     background: rgba(216,54,46,.16); border: 1px solid rgba(216,54,46,.5); color: #ffb3ad;
 }
-.action-timer--done { background: rgba(76,175,106,.16); border-color: rgba(76,175,106,.5); color: #a8e6bd; }
+.action-timer--done {
+    background: rgba(76,175,106,.16); border-color: rgba(76,175,106,.5); color: #a8e6bd;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .6rem;
+}
+.action-done__msg { font-weight: 700; }
 
 .action-view__stage { margin-top: 1.25rem; }
 .action-view__stage h3 {
@@ -1008,6 +1012,7 @@
 .battle-result--lost { background: rgba(216,54,46,.18); border: 1px solid rgba(216,54,46,.6); color: #ffb3ad; }
 
 .battle-view__stage { text-align: center; margin-top: 1rem; }
+.battle-view__stage .action-view__anim { max-width: 300px; max-height: 170px; object-fit: cover; }
 
 /* ============================================================
    PERFIL DE JUGADOR (players/show)

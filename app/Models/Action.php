@@ -20,9 +20,9 @@ class Action extends Model
         'actionable_id',   // ID para relación polimórfica (Zone, Invention)
         'actionable_type', // Tipo del modelo relacionado (Zone, Invention)
         'user_id',         // Relación N:1 con UserZone
-        'type_id',         // Relación N:1 con Type
         'duration',        // Duración de la acción
         'finish',          // booleano finish  de la acción
+        'invention_data',  // puntos/eficiencia/statFactor del invento (finalizar sin sesión)
     ];
 
     protected $casts = [

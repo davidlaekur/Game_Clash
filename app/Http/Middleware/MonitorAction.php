@@ -13,12 +13,15 @@ use App\Models\User;
 
 class MonitorAction
 {
-
-
     public function handle(Request $request, Closure $next)
     {
-        $user = auth()->user();
+        // 1) Finalizar TODAS las acciones vencidas (de cualquier jugador), no solo
+        //    las del conectado: así el juego "avanza en segundo plano" en cuanto
+        //    cualquiera carga una página. (Sin cron; sirve para el multijugador.)
+        $this->finalizeElapsedActions();
 
+        // 2) Estado de bloqueo/tiempo restante del jugador actual.
+        $user = auth()->user();
         if ($user) {
             $action = Action::where('user_id', $user->id)
                 ->where('finish', false)
@@ -26,84 +29,103 @@ class MonitorAction
                 ->first();
 
             if ($action) {
-                $timeElapsed = Carbon::now()->diffInSeconds($action->created_at);
-                $timeRemaining = max(0, $action->duration - $timeElapsed);
-
-                if ($timeRemaining > 0) {
-                    User::where('_id', $user->id)->update([
-                        'actionBlocked' => true,
-                        'timeRemaining' => $timeRemaining
-                    ]);
-                } else {
-                    
-                    // marcar la acción como finalizada
-                    $action->update(['finish' => true]);
+                $remaining = max(0, $action->duration - Carbon::now()->diffInSeconds($action->created_at));
+                User::where('_id', $user->id)->update([
+                    'actionBlocked' => $remaining > 0,
+                    'timeRemaining' => $remaining,
+                ]);
+                if ($remaining <= 0) {
                     session()->forget('actionBlocked');
-
-                    if ($action->type->name === 'explore') {
-                        $zone = $action->actionable;
-                        if ($zone && $zone->team_id === null) {
-                            $zone->team_id = $user->team_id;
-                            $zone->explore_until = null; // libera el bloqueo
-                            $zone->save();
-                            $user->addMerit(5); // mérito por conquistar territorio
-                            session()->flash('success', "Has completado la exploración. La {$zone->name} ahora pertenece a tu equipo.");
-                        } elseif ($zone) {
-                            $zone->explore_until = null;
-                            $zone->save();
-                            session()->flash('warning', "La {$zone->name} ya fue tomada por otro equipo mientras la explorabas.");
-                        }
-                    }
-
-                    if ($action->type->name === 'invent') {
-                        $inventionType = InventionType::find($action->actionable_id);
-                        if ($inventionType) {
-                               // Recuperar los datos de puntos y eficiencia desde la sesión
-                               $pointsAndEfficiency = session('inventionPoints');
-
-                            $invention = Invention::create([
-                                'name' => $inventionType->name,
-                                'efficiency' => $pointsAndEfficiency['efficiency'],
-                                'level' => $inventionType->level,
-                                'points' => $pointsAndEfficiency['points'],
-                                'inventiontype_id' => $inventionType->id,
-                                'inventory_id' => $user->inventory->id,
-                            ]);
-
-                                    // asignar estadísticas al invento (fuente única en config)
-                            $inventionStats = config('invention_stats');
-
-                            // el material modula los stats: más denso => más puntos
-                            $statFactor = $pointsAndEfficiency['statFactor'] ?? 1;
-
-                            if (isset($inventionStats[$invention->name])) {
-                                foreach ($inventionStats[$invention->name] as $statName => $value) {
-                                    $stat = Stat::where('name', $statName)->first();
-                                    if ($stat) {
-                                        InventionStat::create([
-                                            'invention_id' => $invention->id,
-                                            'stat_id' => $stat->id,
-                                            'value' => max(1, (int) round($value * $statFactor)),
-                                        ]);
-                                    }
-                                }
-                            }
-
-                            if ($inventionType->level >= 3) {
-                                $user->addMerit(10); // mérito por forjar un invento de élite
-                            }
-
-                            session()->flash('success', "Se ha completado la creación del invento {$inventionType->name}.");
-                        } 
-                        
-                        else {
-                            session()->flash('error', "Error: El tipo de invento no existe.");
-                        }
-                    }
                 }
+            } else {
+                session()->forget('actionBlocked');
             }
         }
 
         return $next($request);
+    }
+
+    /** Cierra todas las acciones cuyo temporizador ya venció y aplica sus efectos. */
+    private function finalizeElapsedActions(): void
+    {
+        $pending = Action::where('finish', false)->get();
+        foreach ($pending as $action) {
+            $elapsed = Carbon::now()->diffInSeconds($action->created_at);
+            if ($elapsed >= (int) $action->duration) {
+                $this->finalize($action);
+            }
+        }
+    }
+
+    /** Finaliza una acción concreta para su dueño (no para el conectado). */
+    private function finalize(Action $action): void
+    {
+        $action->update(['finish' => true]);
+
+        $owner = User::find($action->user_id);
+        if (!$owner) {
+            return;
+        }
+        // solo se muestra aviso al jugador que está mirando ahora mismo
+        $isCurrent = auth()->id() && (string) auth()->id() === (string) $action->user_id;
+
+        $type = optional($action->type)->name;
+
+        if ($type === 'explore') {
+            $zone = $action->actionable;
+            if ($zone && $zone->team_id === null) {
+                $zone->team_id = $owner->team_id;
+                $zone->explore_until = null;
+                $zone->save();
+                $owner->addMerit(5);
+                if ($isCurrent) {
+                    session()->flash('success', "Has completado la exploración. La {$zone->name} ahora pertenece a tu equipo.");
+                }
+            } elseif ($zone) {
+                $zone->explore_until = null;
+                $zone->save();
+                if ($isCurrent) {
+                    session()->flash('warning', "La {$zone->name} ya fue tomada por otro equipo mientras la explorabas.");
+                }
+            }
+            return;
+        }
+
+        if ($type === 'invent') {
+            $inventionType = InventionType::find($action->actionable_id);
+            if (!$inventionType || !$owner->inventory) {
+                return;
+            }
+            // datos guardados en la acción (no en sesión): funciona para cualquiera
+            $data = $action->invention_data ?: ['points' => $inventionType->level, 'efficiency' => 15, 'statFactor' => 1];
+
+            $invention = Invention::create([
+                'name' => $inventionType->name,
+                'efficiency' => $data['efficiency'] ?? 15,
+                'level' => $inventionType->level,
+                'points' => $data['points'] ?? $inventionType->level,
+                'inventiontype_id' => $inventionType->id,
+                'inventory_id' => $owner->inventory->id,
+            ]);
+
+            $statFactor = $data['statFactor'] ?? 1;
+            foreach ((config('invention_stats')[$invention->name] ?? []) as $statName => $value) {
+                $stat = Stat::where('name', $statName)->first();
+                if ($stat) {
+                    InventionStat::create([
+                        'invention_id' => $invention->id,
+                        'stat_id' => $stat->id,
+                        'value' => max(1, (int) round($value * $statFactor)),
+                    ]);
+                }
+            }
+
+            if ($inventionType->level >= 3) {
+                $owner->addMerit(10);
+            }
+            if ($isCurrent) {
+                session()->flash('success', "Se ha completado la creación del invento {$inventionType->name}.");
+            }
+        }
     }
 }

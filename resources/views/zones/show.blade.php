@@ -17,11 +17,24 @@
         <div class="alert alert-danger">{{ $message }}</div>
     @enderror
 
-    @php $event = $zone->activeEvent(); @endphp
+    @php
+        $event = $zone->activeEvent();
+        $isMyZone = $zone->team_id && $zone->team_id === auth()->user()->team_id;
+    @endphp
     @if ($event)
         <div class="world-event world-event--{{ $event['type'] }}">
             <i class="fas {{ $event['icon'] }}" aria-hidden="true"></i>
-            <span><b>{{ $event['label'] }}</b> — {{ $event['desc'] }}@if($event['type'] === 'tormenta') (defensa −{{ $event['magnitude'] }})@endif</span>
+            <span><b>{{ $event['label'] }}</b> —
+                @if ($event['type'] === 'tormenta')
+                    @if ($isMyZone)
+                        tu zona queda expuesta (defensa −{{ $event['magnitude'] }}): vigila los ataques enemigos.
+                    @else
+                        la defensa de la zona baja −{{ $event['magnitude'] }}: es el momento de atacar.
+                    @endif
+                @else
+                    {{ $event['desc'] }}
+                @endif
+            </span>
         </div>
     @endif
 
