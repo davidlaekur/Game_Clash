@@ -790,6 +790,29 @@
 /* botón de "volver" tras completar una acción (sin auto-salto) */
 .action-done__btn { display: inline-block; margin-left: .6rem; vertical-align: middle; }
 
+/* feedback de respuesta en la aventura */
+.adv-feedback {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .7rem 1rem; border-radius: var(--r-sm); margin: 0 0 .9rem;
+    border: 1px solid; font-weight: 600;
+}
+.adv-feedback .fas { font-size: 1.2rem; }
+.adv-feedback--ok  { background: rgba(76,175,106,.16); border-color: #4caf6a; color: #bfe6cb; }
+.adv-feedback--bad { background: rgba(216,54,46,.16); border-color: #d8362e; color: #f0c2bf; }
+.adv-options--review { list-style: none; margin: 0 0 1rem; padding: 0; }
+.adv-options--review .adv-option {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: .55rem .8rem; border-radius: var(--r-sm); margin-bottom: .4rem;
+    background: rgba(0,0,0,.25); border: 1px solid var(--line); cursor: default;
+}
+.adv-option--correct { border-color: #4caf6a; color: #bfe6cb; background: rgba(76,175,106,.12); }
+.adv-option--correct .fas { color: #4caf6a; }
+
+/* aventura bloqueada por rango */
+.btn-spaceship.is-locked { opacity: .55; cursor: not-allowed; filter: grayscale(.45); pointer-events: none; }
+.adventure-locked-note { font-size: .78rem; color: #e0a93b; margin: .45rem 0 0; text-align: center; }
+.adventure-locked-note .fas { margin-right: .25rem; }
+
 /* mina bloqueada: requisitos visibles */
 .btn-action--mine.is-disabled { opacity: .5; cursor: not-allowed; }
 .mine-locked { display: flex; flex-direction: column; gap: .25rem; grid-column: 1 / -1; }

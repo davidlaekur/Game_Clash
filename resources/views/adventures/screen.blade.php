@@ -23,24 +23,32 @@
             <h3 class="adv-block__title"><i class="fas fa-question-circle" aria-hidden="true"></i> Pregunta</h3>
             <p class="adv-question">{{ $scenario->question }}</p>
 
-            <form action="{{ route('adventure.check', ['scenario' => $scenario->id]) }}" method="POST">
-                @csrf
-                <input type="hidden" name="scenario_id" value="{{ $scenario->id }}">
-                <div class="adv-options">
-                    @foreach ($scenario->options as $option)
-                        <label class="adv-option">
-                            <input type="radio" name="selected_option" value="{{ $option->id }}" required>
-                            <span>{{ $option->text }}</span>
-                        </label>
-                    @endforeach
+            @if ($answered)
+                {{-- ya respondida: feedback + repaso (no se puede re-responder) --}}
+                <div class="adv-feedback adv-feedback--{{ $wasCorrect ? 'ok' : 'bad' }}">
+                    @if ($wasCorrect)
+                        <i class="fas fa-check-circle" aria-hidden="true"></i> ¡Respuesta correcta!
+                    @else
+                        <i class="fas fa-times-circle" aria-hidden="true"></i> Has fallado. La sabiduría llega con el tiempo…
+                    @endif
                 </div>
-                <button type="submit" class="btn-epic adv-answer">Responder</button>
-            </form>
-
-            @if(session('answer_iscorrect'))
                 <form action="{{ route('adventure.continue', ['id' => $userAdventure->id]) }}" method="POST" class="adv-next">
                     @csrf
                     <button type="submit" class="btn-epic">Siguiente pregunta →</button>
+                </form>
+            @else
+                <form action="{{ route('adventure.check', ['scenario' => $scenario->id]) }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="scenario_id" value="{{ $scenario->id }}">
+                    <div class="adv-options">
+                        @foreach ($scenario->options as $option)
+                            <label class="adv-option">
+                                <input type="radio" name="selected_option" value="{{ $option->id }}" required>
+                                <span>{{ $option->text }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <button type="submit" class="btn-epic adv-answer">Responder</button>
                 </form>
             @endif
         </div>

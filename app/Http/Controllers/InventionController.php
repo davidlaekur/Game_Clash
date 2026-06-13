@@ -122,6 +122,7 @@ class InventionController extends Controller
         // crear la acción, pero sin calcular aún los puntos
         $baseDuration = $inventionType->level * 15;
         $duration = ($user->role->name === 'invent') ? $baseDuration : $baseDuration * 1.5;
+        $duration *= app(\App\Services\UserService::class)->actionSpeedFactor($user); // ingenio acelera
     
         Action::create([
             'user_id' => $user->id,

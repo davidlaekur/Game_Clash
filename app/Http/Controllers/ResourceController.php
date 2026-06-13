@@ -203,6 +203,7 @@ class ResourceController extends Controller
         // duración de la acción basada en el rol
         $baseDuration = 30; // Base de 30 segundos para recolectores
         $duration = ($user->role->name === 'collect') ? $baseDuration : $baseDuration * 1.5;
+        $duration *= $this->userService->actionSpeedFactor($user); // el ingenio acelera
 
         // Crear la acción de recolectar con temporizador
         Action::create([

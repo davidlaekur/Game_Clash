@@ -18,7 +18,9 @@ class UserAdventure extends Model
         'user_id',
         'adventure_id',
         'scenario_id',
-        'completed'
+        'completed',
+        'answered_scenario', // escenario ya respondido (bloquea re-responder)
+        'answered_correct',  // si la respuesta fue correcta
     ];
 
 

@@ -102,10 +102,19 @@
                 </div>
                 <p class="side-head__sub">El Reino de Laraveland · {{ $zones->count() }} territorios en disputa</p>
                 @if(auth()->user()->role->name !== 'Admin')
-                    <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta btn-spaceship" id="adventure-btn">
-                        <i class="fas fa-jedi"></i>
-                        Iniciar / Continuar Aventura
-                    </a>
+                    @php $advRank = auth()->user()->rankLevel(); $advMerit = (int) (auth()->user()->merit ?? 0); @endphp
+                    @if ($advRank >= 2)
+                        <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta btn-spaceship" id="adventure-btn">
+                            <i class="fas fa-jedi"></i>
+                            Iniciar / Continuar Aventura
+                        </a>
+                    @else
+                        <span class="btn-epic side-head__cta btn-spaceship is-locked" title="Requiere rango Veterano">
+                            <i class="fas fa-lock"></i>
+                            Aventura bloqueada
+                        </span>
+                        <p class="adventure-locked-note"><i class="fas fa-medal" aria-hidden="true"></i> Necesitas rango <b>Veterano</b> · {{ $advMerit }}/100 méritos</p>
+                    @endif
                 @else
                     <form action="{{ route('import.zones') }}" method="POST">
                         @csrf
@@ -187,22 +196,22 @@
 </div>
 
 <script>
-    // Audio countdown antes de ir a aventura
+    // Audio countdown antes de ir a aventura (respeta el silencio del juego)
     document.getElementById('adventure-btn')?.addEventListener('click', function(e) {
         e.preventDefault();
         const url = this.href;
-        
+        const soundOn = localStorage.getItem('col_audio_on') === '1';
+
+        if (!soundOn) {
+            window.location.href = url; // silenciado: sin cuenta atrás sonora, entra ya
+            return;
+        }
+
         const audio = new Audio('/audio/prepare-space.wav');
-        audio.play();
-        
-        audio.onended = () => {
-            window.location.href = url;
-        };
-        
-        // Fallback si no funciona el audio
-        setTimeout(() => {
-            window.location.href = url;
-        }, 7000);
+        audio.play().catch(() => { window.location.href = url; });
+        audio.onended = () => { window.location.href = url; };
+        // Fallback si el audio no termina
+        setTimeout(() => { window.location.href = url; }, 7000);
     });
     
     // cuenta atrás en vivo de las acciones del panel lateral

@@ -36,8 +36,10 @@ class AdventureController extends Controller
      */
     public function showIntro()
     {
-        if (Auth::user()->rankLevel() < 2) {
-            return redirect()->route('zones.index')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura. Sigue destacando en combate.');
+        $user = Auth::user();
+        $hasActive = UserAdventure::where('user_id', $user->id)->where('completed', false)->exists();
+        if (!$hasActive && $user->rankLevel() < 2) {
+            return redirect()->route('zones.index')->with('error', 'Necesitas rango Veterano (100 méritos) para emprender una aventura. Se gastan al partir.');
         }
         return view('adventures.intro');
     }
@@ -49,8 +51,9 @@ class AdventureController extends Controller
     public function runAdventure()
     {
         $user = Auth::user();
-        if ($user->rankLevel() < 2) {
-            return redirect()->route('zones.index')->with('error', 'Solo los Veteranos (100 méritos) pueden emprender una aventura.');
+        $hasActive = UserAdventure::where('user_id', $user->id)->where('completed', false)->exists();
+        if (!$hasActive && $user->rankLevel() < 2) {
+            return redirect()->route('zones.index')->with('error', 'Necesitas rango Veterano (100 méritos) para emprender una aventura.');
         }
         $userAdventure = $this->obtenerAventuraActiva($user);
 
@@ -62,7 +65,11 @@ class AdventureController extends Controller
 
         $scenario = $this->getScenario($userAdventure->scenario_id);
 
-        return view('adventures.screen', compact('adventure', 'scenario', 'userAdventure'));
+        // ¿ya respondió esta pregunta? (bloquea re-responder y muestra feedback)
+        $answered = (string) $userAdventure->answered_scenario === (string) $userAdventure->scenario_id;
+        $wasCorrect = (bool) $userAdventure->answered_correct;
+
+        return view('adventures.screen', compact('adventure', 'scenario', 'userAdventure', 'answered', 'wasCorrect'));
     }
 
 
@@ -102,6 +109,11 @@ class AdventureController extends Controller
             return null; // Evitar error si no hay escenarios en la aventura
         }
 
+        // emprender una aventura CUESTA méritos: no es gratis ni infinito.
+        // gastas tu rango de Veterano y tienes que volver a ganarlo para otra.
+        $user->merit = max(0, (int) ($user->merit ?? 0) - 100);
+        $user->save();
+
         return UserAdventure::create([
             'user_id' => $user->id,
             'adventure_id' => $adventure->id,
@@ -123,8 +135,13 @@ class AdventureController extends Controller
             return redirect()->back()->with('error', 'Escenario no encontrado');
         }
 
-        $character = $this->starWarsApiService->getRandomCharacter();
-
+        // la API externa puede fallar/tardar: si pasa, seguimos con un genérico
+        try {
+            $character = $this->starWarsApiService->getRandomCharacter();
+        } catch (\Throwable $e) {
+            $character = null;
+        }
+        $character = $character ?: 'un viajero misterioso';
 
         $scenario->question = "Aparece {$character} y nos pregunta: " . $scenario->question;
 
@@ -151,28 +168,31 @@ class AdventureController extends Controller
             return redirect()->back()->with('error', 'No tienes una aventura activa');
         }
 
+        // un intento por pregunta: si ya respondiste este escenario, no se repite
+        if ((string) $userAdventure->answered_scenario === (string) $userAdventure->scenario_id) {
+            return redirect()->route('adventure.run')->with('error', 'Ya has respondido esta pregunta.');
+        }
 
-        // Recuperar la opción seleccionada
+        // Recuperar la opción seleccionada y evaluar
         $option = Option::where('_id', $request->selected_option)->first();
+        $correct = (bool) ($option->is_correct ?? false);
 
+        // registrar la respuesta (bloquea el escenario)
+        $userAdventure->answered_scenario = $userAdventure->scenario_id;
+        $userAdventure->answered_correct = $correct;
+        $userAdventure->save();
 
-        // Verificar si la opción es correcta
-        if ($option->is_correct) {
-            $message = "¡Correcto!";
-
-            // Buscar si hay un una recompensa(item) asociada  al escenario
+        if ($correct) {
+            $message = "<strong>¡Correcto!</strong>";
             $item = Item::where('itemable_id', $userAdventure->scenario_id)->first();
             if ($item) {
-                $message = "<strong>¡Felicidades!</strong><br>" . $message;
                 $message .= " Has encontrado un {$item->name}. {$item->description}";
             }
-
             session(['answer_iscorrect' => true]);
-
             return redirect()->route('adventure.run')->with('success', $message);
         }
 
-        return redirect()->back()->with('error', '¡Oh no! Esa no era la opción correcta.');
+        return redirect()->route('adventure.run')->with('error', '¡Fallaste! Esa no era la respuesta correcta.');
     }
 
 
@@ -188,8 +208,9 @@ class AdventureController extends Controller
             return redirect()->route('zones.index')->with('error', 'Aventura no encontrada');
         }
 
-        if (!session('answer_iscorrect')) {
-            return redirect()->route('adventure.run')->with('error', 'Debes responder correctamente antes de avanzar');
+        // debe haber respondido la pregunta actual (correcta o no) antes de avanzar
+        if ((string) $userAdventure->answered_scenario !== (string) $userAdventure->scenario_id) {
+            return redirect()->route('adventure.run')->with('error', 'Responde la pregunta antes de avanzar.');
         }
 
         session()->forget('answer_iscorrect');
@@ -203,14 +224,19 @@ class AdventureController extends Controller
 
         if ($actualScenario !== false && isset($scenarios[$actualScenario + 1])) {
             $nextScenarioId = $scenarios[$actualScenario + 1];
-            $userAdventure->update(['scenario_id' => $nextScenarioId]);
+            // avanza y limpia el estado de respuesta para la nueva pregunta
+            $userAdventure->update([
+                'scenario_id' => $nextScenarioId,
+                'answered_scenario' => null,
+                'answered_correct' => null,
+            ]);
 
             return redirect()->route('adventure.run');
         }
 
 
         // ponemos a true la aventura y ponemos a null el escenario
-        $userAdventure->update(['completed' => true, 'scenario_id' => null]);
+        $userAdventure->update(['completed' => true, 'scenario_id' => null, 'answered_scenario' => null, 'answered_correct' => null]);
 
         // premio jugable: materia estelar al inventario (habilita inventos de élite)
         $stellarGranted = $this->grantStellarMaterial($userAdventure->user_id, 1);

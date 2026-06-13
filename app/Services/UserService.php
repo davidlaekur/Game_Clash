@@ -11,6 +11,16 @@ class UserService
         return $user->inventory ? $user->inventory->inventions->sum('points') : 0;
     }
 
+    /**
+     * Factor de duración de acciones según ingenio: cada punto de ingenio acorta
+     * un 2% el tiempo de explorar/recolectar/forjar, hasta un máximo del 40%.
+     */
+    public function actionSpeedFactor(User $user): float
+    {
+        $ingenio = $this->getTotalStats($user)['ingenio'] ?? 0;
+        return max(0.6, 1 - $ingenio * 0.02);
+    }
+
     public function getTotalStats(User $user)
     {
         $stats = [

@@ -236,6 +236,7 @@ class PlayerController extends Controller
         if ($user->role->name !== 'explorer') {
             $duration *= 1.5; // Penalización del 50%
         }
+        $duration *= $this->userService->actionSpeedFactor($user); // el ingenio acelera
 
         // fijar el bloqueo de exploración mientras dura (anti-carrera entre equipos)
         $zone->explore_until = now()->addSeconds((int) ceil($duration));
