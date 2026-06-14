@@ -127,6 +127,12 @@
                                 <small class="mine-reqs"><i class="fas fa-lock" aria-hidden="true"></i> Te falta: {{ implode(' · ', $mineMissing) }}</small>
                             </div>
                         @endif
+
+                        <form action="{{ route('zones.surrender', $zone->id) }}" method="POST"
+                              onsubmit="return confirm('¿Rendir {{ $zone->name }}? Quedará neutral (no pasa al enemigo), perderás la mina y te replegarás a una zona propia.');">
+                            @csrf
+                            <button type="submit" class="btn-action btn-action--surrender" title="Abandonar la zona y replegarse"><i class="fas fa-flag" aria-hidden="true"></i> Rendir zona</button>
+                        </form>
                     @endif
 
                     @if ($user->team_id !== null && $zone->team_id !== $user->team_id && $zone->team_id !== null && $zoneAdjacent)

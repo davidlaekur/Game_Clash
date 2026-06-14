@@ -203,6 +203,11 @@ class PlayerController extends Controller
     {
         $user = Auth::user();
 
+        // partida terminada: nada de conquistar hasta que el admin reinicie
+        if ($this->gameService->checkVictoryCondition()) {
+            return redirect()->route('zones.index')->with('error', 'La partida ha terminado. Espera a que el admin inicie una nueva.');
+        }
+
         // Validar que el usuario está en la zona
         if ($user->zone_id !== $zone->id) {
             return back()->with('error', 'Debes moverte a esta zona para explorarla.');
@@ -352,6 +357,12 @@ class PlayerController extends Controller
     public function attack(Zone $zone, ZoneService $zoneService)
     {
         $user = auth()->user();
+
+        // partida terminada: no se puede seguir atacando hasta el reinicio del admin
+        if ($this->gameService->checkVictoryCondition()) {
+            return redirect()->route('zones.index')->with('error', 'La partida ha terminado. Espera a que el admin inicie una nueva.');
+        }
+
         $originZone = $user->zone;
 
         // verificar que el jugador está en una zona propia
@@ -437,7 +448,7 @@ class PlayerController extends Controller
     public function ranking()
     {
         $players = User::players()->with('team')->get()
-            ->sortByDesc(fn($u) => (int) ($u->merit ?? 0))
+            ->sortByDesc(fn($u) => $u->glory())
             ->take(15)->values();
 
         $teams = \App\Models\Team::all()->map(fn($t) => (object) [
@@ -445,6 +456,8 @@ class PlayerController extends Controller
             'zones' => Zone::where('team_id', $t->id)->count(),
         ])->sortByDesc('zones')->values();
 
-        return view('ranking', compact('players', 'teams'));
+        $hallOfFame = \App\Models\HallOfFame::orderBy('ended_at', 'desc')->take(5)->get();
+
+        return view('ranking', compact('players', 'teams', 'hallOfFame'));
     }
 }

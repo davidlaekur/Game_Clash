@@ -51,7 +51,70 @@ class ZoneController extends Controller
         // feed de actividad: qué hacen tus compañeros y qué eventos ocurren
         $feed = $this->buildTeamFeed(auth()->user(), $zones);
 
-        return view('zones.index', compact('zones', 'feed'));
+        // ¿alguien ha ganado la partida? (controla la mitad del mapa)
+        $victory = $this->gameService->checkVictoryCondition();
+
+        // ¿tiene una aventura en curso? (para no bloquear su continuación)
+        $hasAdventure = \App\Models\UserAdventure::where('user_id', auth()->id())->where('completed', false)->exists();
+        $mapZones = $this->buildMapZones($zones, auth()->user());
+        $podium = $victory ? $this->gameService->currentPodium(3) : [];
+
+        return view('zones.index', compact('zones', 'feed', 'victory', 'hasAdventure', 'mapZones', 'podium'));
+    }
+
+    /**
+     * Estado del mundo en JSON para refrescar el mapa EN VIVO (sin recargar,
+     * para no cortar la música). Lo consume el polling de WarMap.
+     */
+    public function state()
+    {
+        $this->worldEventService->tick();
+        $me = auth()->user();
+        $zones = Zone::with('team')->get();
+        $myTeamId = $me->team_id;
+        $total = max(1, $zones->count());
+        $mine = $zones->filter(fn($z) => $z->team_id && (string) $z->team_id === (string) $myTeamId)->count();
+        $enemy = $zones->filter(fn($z) => $z->team_id && (string) $z->team_id !== (string) $myTeamId)->count();
+
+        return response()->json([
+            'zones' => $this->buildMapZones($zones, $me),
+            'counts' => ['mine' => $mine, 'enemy' => $enemy, 'free' => $total - $mine - $enemy, 'total' => $total],
+            'victory' => $this->gameService->checkVictoryCondition(),
+        ]);
+    }
+
+    /** Construye los datos de zona para el mapa (mismo shape que usa WarMap). */
+    private function buildMapZones($zones, $me): array
+    {
+        $myTeamId = $me->team_id;
+        $faction = function ($name) {
+            $n = strtolower($name ?? '');
+            if (str_contains($n, 'laraveland')) return 'laraveland';
+            if (str_contains($n, 'itaca')) return 'itaca';
+            return 'neutral';
+        };
+
+        return $zones->map(function ($zone) use ($myTeamId, $faction, $me) {
+            $ownership = 'neutral';
+            if ($zone->team_id) {
+                $ownership = (string) $zone->team_id === (string) $myTeamId ? 'mine' : 'enemy';
+            }
+            $ev = $zone->activeEvent();
+            return [
+                'id' => $zone->id,
+                'name' => $zone->name,
+                'landscape' => $zone->landscape,
+                'defense' => $zone->defense,
+                'lat' => (int) $zone->latitude,
+                'lon' => (int) $zone->longitude,
+                'teamName' => $zone->team->name ?? null,
+                'ownership' => $ownership,
+                'faction' => $faction($zone->team->name ?? null),
+                'current' => (string) $me->zone_id === (string) $zone->id,
+                'mine_active' => ($zone->regen_boost ?? 1) > 1,
+                'event' => $ev ? ['type' => $ev['type'], 'icon' => $ev['icon'], 'label' => $ev['label']] : null,
+            ];
+        })->values()->all();
     }
 
     /** Actividad reciente del equipo y del mundo para la barra del mapa. */
@@ -382,6 +445,47 @@ class ZoneController extends Controller
         $zone->save();
 
         return redirect()->back()->with('success', "Mina iniciada en {$zone->name}: lista en {$minutes} min. Puedes seguir jugando.");
+    }
+
+    /**
+     * Rendir (abandonar) una zona propia para replegarse sin males mayores: la
+     * zona pasa a NEUTRAL (no se la regalas al enemigo), tu guarnición se retira
+     * sana, pero pierdes la mina y queda en revuelta un rato (no reclamable).
+     * Solo se puede rendir estando DENTRO de la zona y nunca la última del equipo.
+     */
+    public function surrender(Zone $zone)
+    {
+        $user = auth()->user();
+
+        if ((string) $zone->team_id !== (string) $user->team_id) {
+            return redirect()->back()->with('error', 'Solo puedes rendir una zona de tu equipo.');
+        }
+        if ((string) $user->zone_id !== (string) $zone->id) {
+            return redirect()->back()->with('error', 'Tienes que estar en la zona para rendirla.');
+        }
+        if (Zone::where('team_id', $user->team_id)->count() <= 1) {
+            return redirect()->back()->with('error', 'No puedes rendir tu última zona: tu equipo quedaría eliminado.');
+        }
+
+        $defendingTeam = $zone->team_id;
+
+        // la zona se abandona: queda neutral, sin mina y en revuelta un rato
+        $zone->team_id = null;
+        $zone->regen_boost = 1;
+        $zone->mine_ready_at = null;
+        $zone->claim_locked_until = now()->addMinutes(5);
+        $zone->save();
+
+        // la guarnición se retira sana (sin penalización)
+        $retreat = $this->gameService->retreatFromZone($zone, $defendingTeam, false);
+
+        $msg = "Has rendido {$zone->name}: queda neutral y en revuelta unos minutos.";
+        if ($retreat['count'] > 0) {
+            $msg .= ' ' . $retreat['message'];
+        }
+        $target = $retreat['refuge'] ? route('zones.show', $retreat['refuge']->id) : route('zones.index');
+
+        return redirect($target)->with('success', $msg);
     }
 
     /** Total de un material (por familia) en el inventario del jugador. */

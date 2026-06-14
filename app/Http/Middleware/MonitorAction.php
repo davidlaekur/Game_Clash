@@ -73,7 +73,16 @@ class MonitorAction
 
         if ($type === 'explore') {
             $zone = $action->actionable;
-            if ($zone && $zone->team_id === null) {
+            if (!$zone) {
+                return;
+            }
+            if ($zone->isClaimLocked()) {
+                $zone->explore_until = null;
+                $zone->save();
+                if ($isCurrent) {
+                    session()->flash('warning', "La {$zone->name} está en revuelta tras una rendición; aún no puede reclamarse.");
+                }
+            } elseif ($zone->team_id === null) {
                 $zone->team_id = $owner->team_id;
                 $zone->explore_until = null;
                 $zone->save();
@@ -81,7 +90,7 @@ class MonitorAction
                 if ($isCurrent) {
                     session()->flash('success', "Has completado la exploración. La {$zone->name} ahora pertenece a tu equipo.");
                 }
-            } elseif ($zone) {
+            } else {
                 $zone->explore_until = null;
                 $zone->save();
                 if ($isCurrent) {

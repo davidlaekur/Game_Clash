@@ -12,28 +12,8 @@
         if (str_contains($n, 'itaca')) return 'itaca';
         return 'neutral';
     };
-    $mapZones = $zones->map(function ($zone) use ($myTeamId, $factionOf) {
-        $ownership = 'neutral';
-        if ($zone->team_id) {
-            $ownership = $zone->team_id === $myTeamId ? 'mine' : 'enemy';
-        }
-        $ev = $zone->activeEvent();
-        return [
-            'id'        => $zone->id,
-            'name'      => $zone->name,
-            'landscape' => $zone->landscape,
-            'defense'   => $zone->defense,
-            'lat'       => (int) $zone->latitude,
-            'lon'       => (int) $zone->longitude,
-            'teamName'  => $zone->team->name ?? null,
-            'ownership' => $ownership,
-            'faction'   => $factionOf($zone->team->name ?? null),
-            'current'   => Auth::user()->zone_id === $zone->id,
-            'mine_active' => ($zone->regen_boost ?? 1) > 1,
-            'event'     => $ev ? ['type' => $ev['type'], 'icon' => $ev['icon'], 'label' => $ev['label']] : null,
-        ];
-    })->values();
-
+    // $mapZones lo construye ZoneController (mismo shape) para reutilizarlo en el
+    // endpoint de refresco en vivo (map.state).
     $worldMap = asset('images/world/mapa-mundo.png');
 
     $total = max(1, $zones->count());
@@ -50,6 +30,7 @@
         'worldW'      => 1408,
         'worldH'      => 768,
         'adjacency'   => config('zone_adjacency'),
+        'pollUrl'     => route('map.state'), // refresco en vivo sin recargar (no corta la música)
     ];
 
     // Ubicación actual del jugador
@@ -85,6 +66,36 @@
 
 <div class="warmap-page">
 
+    @if (!empty($victory))
+        <div class="victory-podium">
+            <div class="victory-podium__head">
+                <i class="fas fa-crown" aria-hidden="true"></i>
+                <span>{{ $victory }}</span>
+            </div>
+            @if (!empty($podium))
+                <ol class="podium">
+                    @foreach ($podium as $pos => $champ)
+                        <li class="podium__pos podium__pos--{{ $pos + 1 }}">
+                            <span class="podium__medal">{{ ['🥇','🥈','🥉'][$pos] ?? '🏅' }}</span>
+                            <span class="podium__name">{{ $champ['name'] ?? '—' }}</span>
+                            <small class="podium__team">{{ $champ['team'] ?? 'Sin facción' }}</small>
+                            <b class="podium__glory"><i class="fas fa-star" aria-hidden="true"></i> {{ $champ['glory'] ?? 0 }}</b>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+            @if (auth()->user()->role->name === 'Admin')
+                <form action="{{ route('game.new') }}" method="POST" class="victory-podium__new"
+                      onsubmit="return confirm('¿Iniciar una nueva partida? Se archivará el podio en el Salón de la Fama y se reiniciará todo (zonas, inventarios, méritos y gloria).');">
+                    @csrf
+                    <button type="submit" class="btn-epic"><i class="fas fa-redo" aria-hidden="true"></i> Iniciar nueva partida</button>
+                </form>
+            @else
+                <p class="victory-podium__wait">La partida ha terminado. El admin iniciará una nueva.</p>
+            @endif
+        </div>
+    @endif
+
     {{-- Mapa a ancho completo + panel lateral con toda la info --}}
     <div class="warmap-layout">
         <div class="warmap-stage-wrap">
@@ -103,17 +114,21 @@
                 <p class="side-head__sub">El Reino de Laraveland · {{ $zones->count() }} territorios en disputa</p>
                 @if(auth()->user()->role->name !== 'Admin')
                     @php $advRank = auth()->user()->rankLevel(); $advMerit = (int) (auth()->user()->merit ?? 0); @endphp
-                    @if ($advRank >= 2)
+                    @if (($hasAdventure ?? false) || ($advRank >= 2 && $advMerit >= 100))
                         <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta btn-spaceship" id="adventure-btn">
                             <i class="fas fa-jedi"></i>
                             Iniciar / Continuar Aventura
                         </a>
                     @else
-                        <span class="btn-epic side-head__cta btn-spaceship is-locked" title="Requiere rango Veterano">
+                        <span class="btn-epic side-head__cta btn-spaceship is-locked" title="Requiere rango Veterano y 100 méritos">
                             <i class="fas fa-lock"></i>
                             Aventura bloqueada
                         </span>
-                        <p class="adventure-locked-note"><i class="fas fa-medal" aria-hidden="true"></i> Necesitas rango <b>Veterano</b> · {{ $advMerit }}/100 méritos</p>
+                        @if ($advRank < 2)
+                            <p class="adventure-locked-note"><i class="fas fa-medal" aria-hidden="true"></i> Necesitas rango <b>Veterano</b> · {{ $advMerit }}/100 méritos</p>
+                        @else
+                            <p class="adventure-locked-note"><i class="fas fa-coins" aria-hidden="true"></i> Necesitas <b>100 méritos</b> para partir · tienes {{ $advMerit }}</p>
+                        @endif
                     @endif
                 @else
                     <form action="{{ route('import.zones') }}" method="POST">
@@ -153,6 +168,13 @@
                     <a href="{{ route('zones.show', $currentZone->id) }}" class="btn-ghost side-block__btn">Ir a la zona</a>
                 @else
                     <p class="side-empty">No estás en ninguna zona.</p>
+                @endif
+
+                @if ($me->isWounded())
+                    <div class="wounded-note">
+                        <i class="fas fa-heart-broken" aria-hidden="true"></i>
+                        <span>Estás <b>herido</b> (−20% en combate) · se cura en {{ max(1, (int) ceil(now()->diffInSeconds($me->wounded_until, false) / 60)) }} min</span>
+                    </div>
                 @endif
             </div>
 
@@ -231,5 +253,29 @@
             time.textContent = m + ':' + ss;
         }, 1000);
     });
+
+    // refresco EN VIVO del HUD lateral sin recargar la página (la música no se
+    // corta). El mapa lo refresca WarMap por su cuenta con el mismo endpoint.
+    (function () {
+        const pollUrl = @json(route('map.state'));
+        setInterval(function () {
+            if (document.hidden) return;
+            fetch(pollUrl, { headers: { Accept: 'application/json' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) {
+                    if (!d || !d.counts) return;
+                    const c = d.counts, t = c.total || 1;
+                    const setW = function (sel, n) { const e = document.querySelector(sel); if (e) e.style.width = (n / t * 100) + '%'; };
+                    const setT = function (sel, txt) { const e = document.querySelector(sel); if (e) e.textContent = txt; };
+                    setW('.hud__bar-seg--mine', c.mine);
+                    setW('.hud__bar-seg--enemy', c.enemy);
+                    setW('.hud__bar-seg--free', c.free);
+                    setT('.hud__count--mine', '⬤ ' + c.mine + ' tuyas');
+                    setT('.hud__count--enemy', '⬤ ' + c.enemy + ' rivales');
+                    setT('.hud__count--free', '⬤ ' + c.free + ' libres');
+                })
+                .catch(function () {});
+        }, 20000);
+    })();
 </script>
 @endsection

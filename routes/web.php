@@ -52,7 +52,10 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('zones', ZoneController::class); // Vista donde el usuario entra después de loguearse
     Route::post('/import-zones', [ZoneController::class, 'importZones'])->name('import.zones');
     Route::post('zones/{zone}/mina', [ZoneController::class, 'buildMine'])->name('zones.buildMine');
+    Route::post('zones/{zone}/rendir', [ZoneController::class, 'surrender'])->name('zones.surrender');
     Route::get('ranking', [PlayerController::class, 'ranking'])->name('ranking');
+    Route::get('map-state', [ZoneController::class, 'state'])->name('map.state'); // refresco en vivo del mapa
+    Route::post('game/new', [GameController::class, 'newGame'])->name('game.new'); // nueva partida (solo admin)
 
 
     Route::get('teams/transfer', [TeamController::class, 'transfer'])->name('teams.transfer');

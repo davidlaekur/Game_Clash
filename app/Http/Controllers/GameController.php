@@ -67,4 +67,25 @@ class GameController extends Controller
 
         return redirect()->route('game.status')->with('success', 'El juego ha sido reiniciado.');
     }
+
+    /**
+     * Iniciar una NUEVA partida (solo admin): archiva la terminada en el Salón de
+     * la Fama (ganador + podio) y reinicia todo. Solo si la partida ya tiene ganador.
+     */
+    public function newGame()
+    {
+        $user = auth()->user();
+        if (!$user || optional($user->role)->name !== 'Admin') {
+            return redirect()->route('zones.index')->with('error', 'Solo el admin puede iniciar una nueva partida.');
+        }
+
+        $victory = $this->gameService->checkVictoryCondition();
+        if (!$victory) {
+            return redirect()->route('zones.index')->with('error', 'La partida sigue en curso; aún no hay ganador.');
+        }
+
+        $this->gameService->archiveAndReset($victory);
+
+        return redirect()->route('zones.index')->with('success', 'Nueva partida iniciada. ¡Que empiece la conquista!');
+    }
 }

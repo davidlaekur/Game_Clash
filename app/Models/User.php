@@ -27,10 +27,12 @@ class User extends Authenticatable implements JWTSubject
         'email',
         'password',
         'points',    // Puntos de experiencia
-        'merit',     // Méritos (rango): se ganan destacando en el juego
+        'merit',      // Méritos GASTABLES (moneda): suben al destacar, bajan al gastar
+        'rank_score', // Méritos máximos alcanzados: definen el RANGO (permanente, no baja)
         'role_id',    // Relación con Rol
         'team_id',    // Relación con Team
         'zone_id',    // Relación con Zone
+        'wounded_until', // estado "Herido" temporal tras perder una batalla defendiendo
     ];
 
 
@@ -52,6 +54,7 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'wounded_until' => 'datetime',
     ];
 
     /**
@@ -147,11 +150,12 @@ class User extends Authenticatable implements JWTSubject
      */
     public function rank(): array
     {
-        $merit = (int) ($this->merit ?? 0);
+        // el rango se basa en la GLORIA (méritos de carrera acumulados), no baja al gastar
+        $score = $this->glory();
         $ranks = config('ranks');
         $current = $ranks[0] + ['level' => 0];
         foreach ($ranks as $i => $r) {
-            if ($merit >= $r['merit']) {
+            if ($score >= $r['merit']) {
                 $current = $r + ['level' => $i];
             }
         }
@@ -164,10 +168,43 @@ class User extends Authenticatable implements JWTSubject
         return $this->rank()['level'];
     }
 
-    /** Suma méritos y guarda. */
+    /** Gloria: méritos acumulados de toda la partida (nunca bajan, ni al gastar). Define el rango y el ranking. */
+    public function glory(): int
+    {
+        return (int) ($this->rank_score ?? 0);
+    }
+
+    /** Gana méritos: suben la moneda (gastable) y la GLORIA (acumulada, no baja). */
     public function addMerit(int $amount): void
     {
         $this->merit = (int) ($this->merit ?? 0) + $amount;
+        $this->rank_score = (int) ($this->rank_score ?? 0) + $amount; // gloria acumulada
+        $this->save();
+    }
+
+    /** Gasta méritos (p.ej. emprender una aventura): baja la moneda, NO el rango. */
+    public function spendMerit(int $amount): void
+    {
+        $this->merit = max(0, (int) ($this->merit ?? 0) - $amount);
+        $this->save();
+    }
+
+    /** ¿Está herido ahora mismo? (tras perder una batalla defendiendo) */
+    public function isWounded(): bool
+    {
+        return $this->wounded_until && $this->wounded_until->isFuture();
+    }
+
+    /** Penalización de combate mientras está herido (−20% a los stats de combate). */
+    public function woundedFactor(): float
+    {
+        return $this->isWounded() ? 0.8 : 1.0;
+    }
+
+    /** Marca al jugador como Herido durante unos minutos (se cura solo con el tiempo). */
+    public function wound(int $minutes = 20): void
+    {
+        $this->wounded_until = \Carbon\Carbon::now()->addMinutes($minutes);
         $this->save();
     }
 

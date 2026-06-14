@@ -38,8 +38,13 @@ class AdventureController extends Controller
     {
         $user = Auth::user();
         $hasActive = UserAdventure::where('user_id', $user->id)->where('completed', false)->exists();
-        if (!$hasActive && $user->rankLevel() < 2) {
-            return redirect()->route('zones.index')->with('error', 'Necesitas rango Veterano (100 méritos) para emprender una aventura. Se gastan al partir.');
+        if (!$hasActive) {
+            if ($user->rankLevel() < 2) {
+                return redirect()->route('zones.index')->with('error', 'Necesitas rango Veterano para emprender una aventura.');
+            }
+            if ((int) ($user->merit ?? 0) < 100) {
+                return redirect()->route('zones.index')->with('error', 'Necesitas 100 méritos disponibles (se gastan al partir). Sigue destacando en combate.');
+            }
         }
         return view('adventures.intro');
     }
@@ -52,8 +57,13 @@ class AdventureController extends Controller
     {
         $user = Auth::user();
         $hasActive = UserAdventure::where('user_id', $user->id)->where('completed', false)->exists();
-        if (!$hasActive && $user->rankLevel() < 2) {
-            return redirect()->route('zones.index')->with('error', 'Necesitas rango Veterano (100 méritos) para emprender una aventura.');
+        if (!$hasActive) {
+            if ($user->rankLevel() < 2) {
+                return redirect()->route('zones.index')->with('error', 'Necesitas rango Veterano para emprender una aventura.');
+            }
+            if ((int) ($user->merit ?? 0) < 100) {
+                return redirect()->route('zones.index')->with('error', 'Necesitas 100 méritos disponibles para emprender la aventura.');
+            }
         }
         $userAdventure = $this->obtenerAventuraActiva($user);
 
@@ -109,10 +119,9 @@ class AdventureController extends Controller
             return null; // Evitar error si no hay escenarios en la aventura
         }
 
-        // emprender una aventura CUESTA méritos: no es gratis ni infinito.
-        // gastas tu rango de Veterano y tienes que volver a ganarlo para otra.
-        $user->merit = max(0, (int) ($user->merit ?? 0) - 100);
-        $user->save();
+        // emprender una aventura CUESTA méritos (moneda), pero NO baja el rango:
+        // gastas 100 méritos y tienes que volver a ganarlos para otra aventura.
+        $user->spendMerit(100);
 
         return UserAdventure::create([
             'user_id' => $user->id,

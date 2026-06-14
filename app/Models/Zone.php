@@ -29,7 +29,14 @@ class Zone extends Model
         'event_ends_at',   // cuándo caduca el evento
         'event_magnitude', // intensidad del evento (p.ej. defensa que resta la tormenta)
         'explore_until',   // bloqueo: alguien está explorando la zona hasta este momento
+        'claim_locked_until', // revuelta tras una rendición: no se puede reclamar hasta este momento
     ];
+
+    /** ¿La zona está en revuelta (recién rendida) y aún no puede reclamarse? */
+    public function isClaimLocked(): bool
+    {
+        return $this->claim_locked_until && \Carbon\Carbon::parse($this->claim_locked_until)->isFuture();
+    }
 
     /**
      * Evento de mundo activo (o null si no hay o ya caducó).

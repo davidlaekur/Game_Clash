@@ -57,15 +57,31 @@ function landIcon(landscape) {
 }
 
 export default function WarMap({
-    zones = [],
+    zones: initialZones = [],
     showUrlBase = "/zones",
     worldMap = "",
     worldW = 1408,
     worldH = 768,
     adjacency = {},
+    pollUrl = "",
 }) {
     const wrapRef = useRef(null);
+    // las zonas se actualizan EN VIVO por polling (sin recargar la página)
+    const [zones, setZones] = useState(initialZones);
     const [view, setView] = useState({ x: 0, y: 0, k: 1 });
+
+    // refresco en vivo del mundo: colores, eventos y minas cambian sin recargar
+    useEffect(() => {
+        if (!pollUrl) return;
+        const id = setInterval(() => {
+            if (document.hidden) return;
+            fetch(pollUrl, { headers: { Accept: "application/json" } })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((d) => { if (d && Array.isArray(d.zones)) setZones(d.zones); })
+                .catch(() => {});
+        }, 20000);
+        return () => clearInterval(id);
+    }, [pollUrl]);
     const fit = useRef({ x: 0, y: 0, k: 1 });
     const drag = useRef({ active: false, sx: 0, sy: 0, ox: 0, oy: 0, moved: 0 });
     const [hover, setHover] = useState(null);

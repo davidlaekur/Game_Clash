@@ -758,6 +758,16 @@
 .btn-action--attack  { background: linear-gradient(180deg, #d8362e, #8a1c18); grid-column: 1 / -1; }
 .btn-action--mine    { background: linear-gradient(180deg, #7d6b58, #4f4233); }
 .btn-action--mine.is-active { background: linear-gradient(180deg, #2f7d4f, #1f5436); cursor: default; }
+.btn-action--surrender { background: linear-gradient(180deg, #6c757d, #495057); grid-column: 1 / -1; }
+
+/* aviso de jugador Herido (tras perder una batalla defendiendo) */
+.wounded-note {
+    display: flex; align-items: center; gap: .5rem;
+    margin-top: .6rem; padding: .5rem .7rem;
+    background: rgba(216, 54, 46, .12); border: 1px solid #d8362e;
+    border-radius: 8px; color: #f3b8b4; font-size: .85rem;
+}
+.wounded-note i { color: #d8362e; }
 
 /* rango del jugador */
 .chip--rank { background: linear-gradient(180deg, #6b4fa0, #3f2d66); color: #f1e7ff; border-color: #8a6cc4; }
@@ -810,7 +820,60 @@
 
 /* aventura bloqueada por rango */
 .btn-spaceship.is-locked { opacity: .55; cursor: not-allowed; filter: grayscale(.45); pointer-events: none; }
+
+/* banner de victoria */
+.victory-banner {
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    margin: 0 0 1rem; padding: 1rem 1.2rem; border-radius: var(--r-md);
+    font-family: var(--font-display); font-weight: 800; font-size: 1.15rem;
+    color: #3a2a06; text-align: center;
+    background: linear-gradient(180deg, #f6d98a, #d6a83b);
+    border: 2px solid #f1d27a; box-shadow: 0 0 24px rgba(241,210,122,.5);
+}
+.victory-banner .fas { font-size: 1.4rem; }
 .adventure-locked-note { font-size: .78rem; color: #e0a93b; margin: .45rem 0 0; text-align: center; }
+
+/* podio de fin de partida (zones/index) */
+.victory-podium {
+    margin: 0 0 1rem; padding: 1.1rem 1.2rem; border-radius: var(--r-md);
+    background: linear-gradient(180deg, rgba(246,217,138,.16), rgba(214,168,59,.10));
+    border: 2px solid #f1d27a; box-shadow: 0 0 24px rgba(241,210,122,.35); text-align: center;
+}
+.victory-podium__head {
+    display: flex; align-items: center; justify-content: center; gap: .6rem;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.1rem; color: #f6d98a;
+}
+.victory-podium__head .fas { font-size: 1.4rem; }
+.podium { list-style: none; display: flex; justify-content: center; align-items: flex-end; gap: .8rem; flex-wrap: wrap; margin: .9rem 0 .4rem; padding: 0; }
+.podium__pos {
+    display: flex; flex-direction: column; align-items: center; gap: .15rem;
+    min-width: 120px; padding: .6rem .8rem; border-radius: 10px;
+    background: rgba(0,0,0,.22); border: 1px solid rgba(241,210,122,.35);
+}
+/* podio clásico: 2º a la izquierda, 1º en el centro (elevado), 3º a la derecha */
+.podium__pos--2 { order: 1; }
+.podium__pos--1 { order: 2; transform: translateY(-12px); border-color: #f1d27a; box-shadow: 0 0 14px rgba(241,210,122,.5); padding-top: 1rem; padding-bottom: 1rem; }
+.podium__pos--3 { order: 3; }
+.podium__medal { font-size: 1.6rem; }
+.podium__name { font-weight: 700; color: #fff; }
+.podium__team { color: #cbb27a; font-size: .75rem; }
+.podium__glory { color: #f6d98a; font-size: .9rem; }
+.victory-podium__new { margin-top: .6rem; }
+.victory-podium__wait { margin: .6rem 0 0; color: #cbb27a; font-size: .85rem; }
+
+/* Salón de la Fama (ranking) */
+.hall-of-fame { margin-top: 1rem; }
+.hof-match { padding: .7rem 0; border-top: 1px solid rgba(255,255,255,.08); }
+.hof-match:first-of-type { border-top: 0; }
+.hof-winner { font-weight: 700; color: #f6d98a; margin: 0 0 .4rem; }
+.hof-podium { list-style: none; display: flex; gap: .8rem; flex-wrap: wrap; margin: 0; padding: 0; }
+.hof-pos { display: flex; align-items: center; gap: .35rem; }
+.hof-medal { font-size: 1.1rem; }
+.hof-name { font-weight: 600; color: #fff; }
+.hof-team { color: #cbb27a; }
+.hof-glory { color: #f6d98a; }
+.hof-date { display: block; margin-top: .35rem; color: #8a7c5a; font-size: .72rem; }
+.ranking-wallet { color: #cbb27a; margin-left: .4rem; }
 .adventure-locked-note .fas { margin-right: .25rem; }
 
 /* mina bloqueada: requisitos visibles */

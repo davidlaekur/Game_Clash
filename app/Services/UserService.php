@@ -52,6 +52,14 @@ class UserService
             }
         }
 
+        // un jugador Herido pelea peor: −20% a los stats de combate (no afecta a
+        // ingenio/capacidad). Se cura solo con el tiempo.
+        if ($user->isWounded()) {
+            foreach (['ataque', 'defensa', 'salud', 'velocidad', 'suerte'] as $k) {
+                $stats[$k] = (int) round($stats[$k] * 0.8);
+            }
+        }
+
         return $stats;
     }
 

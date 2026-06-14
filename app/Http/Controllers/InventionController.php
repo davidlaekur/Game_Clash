@@ -113,11 +113,16 @@ class InventionController extends Controller
             }
         }
 
-        // eliminar los inventos seleccionados del inventario
-        foreach ($selectedInventions as $inventionId) {
-            $inventionToRemove = $user->inventory->inventions->find($inventionId);
-            if ($inventionToRemove) {
-                $inventionToRemove->delete();
+        // consumir SOLO los inventos previos REALMENTE requeridos (no los que el
+        // jugador marcara por error). Para cada prerequisito, gasta su cantidad.
+        foreach ($inventionType->needs as $need) {
+            $qtyNeeded = max(1, (int) ($need->quantity ?? 1));
+            $toConsume = $user->inventory->inventions
+                ->whereIn('_id', $selectedInventions)
+                ->where('inventiontype_id', $need->parent_id)
+                ->take($qtyNeeded);
+            foreach ($toConsume as $inv) {
+                $inv->delete();
             }
         }
     
