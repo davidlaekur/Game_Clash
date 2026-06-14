@@ -238,12 +238,13 @@ class GameService
                 $resultDescription .= ' Los atacantes pierden: ' . implode(', ', $lost) . '.';
             }
 
-            // recompensa: los defensores ganan experiencia y mérito por aguantar
+            // recompensa: los defensores ganan experiencia y mérito por aguantar.
+            // addMerit() sube monedero Y gloria (rango): así defender también hace
+            // carrera y el rango no se desploma al gastar méritos luego.
             $defenders = $zone->users()->players()->get();
             foreach ($defenders as $d) {
                 $d->points = ($d->points ?? 0) + 5;
-                $d->merit = (int) ($d->merit ?? 0) + 10;
-                $d->save();
+                $d->addMerit(10); // hace save() (persiste también points)
             }
             if ($defenders->isNotEmpty()) {
                 $resultDescription .= ' Los defensores ganan +5 de experiencia y +10 de mérito por resistir.';

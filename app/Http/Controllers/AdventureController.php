@@ -106,6 +106,12 @@ class AdventureController extends Controller
 
     private function createUserAdventure($user)
     {
+        // seguro de puerta: nunca crear ni gastar méritos si no cumple los
+        // requisitos (rango Veterano + 100 méritos). Defensa en profundidad.
+        if ($user->rankLevel() < 2 || (int) ($user->merit ?? 0) < 100) {
+            return null;
+        }
+
         $adventures = Adventure::all();
 
         if ($adventures->isEmpty()) {
