@@ -3,64 +3,65 @@
 @section('title', 'Editar Perfil')
 
 @section('content')
-<div class="container mt-4">
+<div class="profile-edit">
+    <div class="profile-edit__card">
+        <div class="profile-edit__head">
+            <span class="profile-edit__crest"><i class="fas fa-user-edit" aria-hidden="true"></i></span>
+            <h1 class="profile-edit__title">Editar perfil</h1>
+            <p class="profile-edit__sub">Afina tu identidad de guerrero.</p>
+        </div>
 
-    <!-- volver  -->
-    <div class="mt-4">
-        <a href="{{ route('players.show', Auth::user()->id) }}" class="btn btn-primary">Volver</a>
+        <form action="{{ route('players.update', $user->id) }}" method="POST" enctype="multipart/form-data" class="auth-form">
+            @csrf
+            @method('PUT')
+
+            <div class="auth-field">
+                <label for="name">Nombre de usuario</label>
+                <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" required>
+                @error('name')<span class="auth-error">{{ $message }}</span>@enderror
+            </div>
+
+            <div class="auth-field">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" required>
+                @error('email')<span class="auth-error">{{ $message }}</span>@enderror
+            </div>
+
+            <div class="auth-field">
+                <label for="avatar">Avatar (opcional)</label>
+                <input type="file" id="avatar" name="avatar">
+                <span class="auth-hint">Imagen de perfil · JPG o PNG, hasta 2 MB.</span>
+            </div>
+
+            <div class="auth-field">
+                <label for="bio">Descripción (opcional)</label>
+                <textarea id="bio" name="bio" rows="3" placeholder="Cuenta tu leyenda…">{{ old('bio', $user->bio ?? '') }}</textarea>
+            </div>
+
+            <div class="profile-edit__sep"><span>Cambiar contraseña (opcional)</span></div>
+
+            <div class="auth-field">
+                <label for="current_password">Contraseña actual</label>
+                <input type="password" id="current_password" name="current_password" placeholder="••••••••">
+                @error('current_password')<span class="auth-error">{{ $message }}</span>@enderror
+            </div>
+
+            <div class="auth-grid">
+                <div class="auth-field">
+                    <label for="password">Nueva contraseña</label>
+                    <input type="password" id="password" name="password" placeholder="••••••••">
+                </div>
+                <div class="auth-field">
+                    <label for="password_confirmation">Confirmar</label>
+                    <input type="password" id="password_confirmation" name="password_confirmation" placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="profile-edit__actions">
+                <a href="{{ route('players.show', Auth::user()->id) }}" class="btn-ghost">Volver</a>
+                <button type="submit" class="btn-epic"><i class="fas fa-save" aria-hidden="true"></i> Guardar cambios</button>
+            </div>
+        </form>
     </div>
-
-    <form action="{{ route('players.update', $user->id) }}" method="POST" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
-
-        <!-- Nombre de usuario -->
-        <div class="form-group mt-5">
-            <label for="name">Nombre de Usuario</label>
-            <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" class="form-control" required>
-        </div>
-        <!-- mail-->
-        <div class="form-group mt-4">
-            <label for="email">Correo Electrónico</label>
-            <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" class="form-control" required>
-        </div>
-
-        <!-- avatar -->
-        <div class="form-group mt-4">
-            <label for="avatar">Avatar (Opcional)</label>
-            <input type="file" id="avatar" name="avatar" class="form-control">
-            <small class="text-muted">Imagen de perfil (JPG, PNG, hasta 2MB)</small>
-        </div>
-
-        <!-- Descripción del usuario -->
-        <div class="form-group mt-4">
-            <label for="bio" class="form-label">Descripción (Opcional)</label>
-            <textarea id="bio" name="bio" class="form-control" rows="4" placeholder="Describe algo sobre ti...">{{ old('bio', $user->bio ?? '') }}</textarea>
-        </div>
-
-        <!-- Contraseña actual -->
-        <div class="form-group mt-4">
-            <label for="current_password">Contraseña Actual</label>
-            <input type="password" id="current_password" name="current_password" class="form-control">
-            @error('current_password')
-            <div class="text-danger mt-1">{{ $message }}</div>
-            @enderror
-        </div>
-
-        <!-- Nueva contraseña -->
-        <div class="form-group mt-4">
-            <label for="password">Nueva Contraseña</label>
-            <input type="password" id="password" name="password" class="form-control">
-        </div>
-
-        <!-- Confirmar nueva contraseña -->
-        <div class="form-group mt-4">
-            <label for="password_confirmation">Confirmar Nueva Contraseña</label>
-            <input type="password" id="password_confirmation" name="password_confirmation" class="form-control">
-        </div>
-
-        <!-- Actualizar perfil -->
-        <button type="submit" class="btn btn-success mt-4">Actualizar Perfil</button>
-    </form>
 </div>
 @endsection

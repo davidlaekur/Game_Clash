@@ -96,14 +96,14 @@
                         </form>
                     @endif
 
-                    @if ($user->zone_id === $zone->id && $zone->team_id === null)
+                    @if (($gameActive ?? false) && $user->zone_id === $zone->id && $zone->team_id === null)
                         <form action="{{ route('players.explore', $zone->id) }}" method="POST" data-sfx="explore">
                             @csrf
                             <button type="submit" class="btn-action btn-action--explore" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-compass" aria-hidden="true"></i> Explorar</button>
                         </form>
                     @endif
 
-                    @if ($user->zone_id === $zone->id && $zone->team_id === $user->team_id)
+                    @if (($gameActive ?? false) && $user->zone_id === $zone->id && $zone->team_id === $user->team_id)
                         <form action="{{ route('players.collect', $zone->id) }}" method="POST" data-sfx="collect">
                             @csrf
                             <button type="submit" class="btn-action btn-action--collect" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-hand-holding" aria-hidden="true"></i> Recolectar</button>
@@ -135,12 +135,16 @@
                         </form>
                     @endif
 
-                    @if ($user->team_id !== null && $zone->team_id !== $user->team_id && $zone->team_id !== null && $zoneAdjacent)
+                    @if (($gameActive ?? false) && $user->team_id !== null && $zone->team_id !== $user->team_id && $zone->team_id !== null && $zoneAdjacent)
                         <form action="{{ route('players.attack', $zone->id) }}" method="POST" data-sfx="attack">
                             @csrf
                             <button type="submit" class="btn-action btn-action--attack" {{ $timeRemaining > 0 ? 'disabled' : '' }}><i class="fas fa-khanda" aria-hidden="true"></i> Atacar</button>
                         </form>
                     @endif
+
+                    @unless ($gameActive ?? false)
+                        <p class="zone-phase-note"><i class="fas fa-hourglass-half" aria-hidden="true"></i> La partida no está en curso. Solo puedes moverte para posicionarte.</p>
+                    @endunless
                 </div>
             </div>
         </div>

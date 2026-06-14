@@ -45,21 +45,81 @@ class ZoneController extends Controller
         // el mundo cobra vida: caduca eventos viejos y puede generar uno nuevo
         $this->worldEventService->tick();
 
+        // sincroniza la fase: arranca sola al mínimo de jugadores; termina al ganar
+        $state = $this->gameService->syncPhase();
+        $phase = $state->phase ?? 'lobby';
+
+        // FASE DE INSCRIPCIÓN: sala de espera con pantalla propia (sin mapa)
+        if ($state->isLobby()) {
+            return $this->lobbyView();
+        }
+
         // cargar todas las zonas con sus equipos
         $zones = Zone::with('team')->get();
 
         // feed de actividad: qué hacen tus compañeros y qué eventos ocurren
         $feed = $this->buildTeamFeed(auth()->user(), $zones);
 
-        // ¿alguien ha ganado la partida? (controla la mitad del mapa)
-        $victory = $this->gameService->checkVictoryCondition();
+        // resultado y podio solo cuando la partida ha terminado
+        $victory = $state->isEnded() ? ($state->result_message ?: $this->gameService->checkVictoryCondition()) : null;
+        $podium = $state->isEnded() ? $this->gameService->currentPodium(3) : [];
 
         // ¿tiene una aventura en curso? (para no bloquear su continuación)
         $hasAdventure = \App\Models\UserAdventure::where('user_id', auth()->id())->where('completed', false)->exists();
         $mapZones = $this->buildMapZones($zones, auth()->user());
-        $podium = $victory ? $this->gameService->currentPodium(3) : [];
 
-        return view('zones.index', compact('zones', 'feed', 'victory', 'hasAdventure', 'mapZones', 'podium'));
+        $me = auth()->user();
+        $joined = (bool) ($me->joined ?? false);
+        $joinedCount = \App\Models\User::players()->where('joined', true)->count();
+
+        // cónclave en marcha en tu equipo (rendir la última zona)
+        $teamProposal = \App\Models\Proposal::where('team_id', $me->team_id)->where('status', 'pending')->first();
+
+        return view('zones.index', compact('zones', 'feed', 'victory', 'hasAdventure', 'mapZones', 'podium', 'phase', 'joined', 'joinedCount', 'teamProposal'));
+    }
+
+    /** Pantalla de reclutamiento (sala de espera): facciones, roles libres, unirse. */
+    private function lobbyView()
+    {
+        $me = auth()->user();
+        $faction = function ($name) {
+            $n = strtolower($name ?? '');
+            if (str_contains($n, 'laraveland')) return 'laraveland';
+            if (str_contains($n, 'itaca')) return 'itaca';
+            return 'neutral';
+        };
+
+        $teams = \App\Models\Team::all();
+        $musters = $teams->map(function ($t) use ($faction, $me) {
+            $enlisted = \App\Models\User::players()->where('team_id', $t->id)->where('joined', true)->get();
+            return [
+                'id'      => (string) $t->id,
+                'name'    => $t->name,
+                'faction' => $faction($t->name),
+                'joined'  => $enlisted->count(),
+                'players' => $enlisted->map(fn($u) => [
+                    'name' => $u->name,
+                    'role' => optional($u->role)->name,
+                ])->values()->all(),
+                'mine'    => (string) $t->id === (string) $me->team_id,
+            ];
+        })->values();
+
+        // roles seleccionables y, por equipo, los ya ocupados (para filtrar en vivo)
+        $roles = \App\Models\Role::where('name', '!=', 'Admin')->get();
+        $occupied = [];
+        foreach ($teams as $t) {
+            $occupied[(string) $t->id] = \App\Models\User::players()
+                ->where('team_id', $t->id)->where('joined', true)
+                ->get()->pluck('role_id')->map(fn($r) => (string) $r)->filter()->values()->all();
+        }
+
+        $joined = (bool) ($me->joined ?? false);
+        $myRole = optional($me->role)->name;
+        $isAdmin = optional($me->role)->name === 'Admin';
+        $minPerTeam = \App\Models\GameState::current()->minPerTeam();
+
+        return view('game.lobby', compact('musters', 'roles', 'occupied', 'joined', 'myRole', 'isAdmin', 'minPerTeam'));
     }
 
     /**
@@ -69,6 +129,7 @@ class ZoneController extends Controller
     public function state()
     {
         $this->worldEventService->tick();
+        $state = $this->gameService->syncPhase();
         $me = auth()->user();
         $zones = Zone::with('team')->get();
         $myTeamId = $me->team_id;
@@ -79,7 +140,8 @@ class ZoneController extends Controller
         return response()->json([
             'zones' => $this->buildMapZones($zones, $me),
             'counts' => ['mine' => $mine, 'enemy' => $enemy, 'free' => $total - $mine - $enemy, 'total' => $total],
-            'victory' => $this->gameService->checkVictoryCondition(),
+            'victory' => $state->isEnded() ? ($state->result_message ?: $this->gameService->checkVictoryCondition()) : null,
+            'phase' => $state->phase ?? 'lobby',
         ]);
     }
 
@@ -275,6 +337,7 @@ class ZoneController extends Controller
             'mineRemaining' => $mineRemaining,
             'mineCanBuild' => $mineCanBuild,
             'mineMissing' => $mineMissing,
+            'gameActive' => \App\Models\GameState::current()->isActive(),
         ]);
     }
 
@@ -463,8 +526,27 @@ class ZoneController extends Controller
         if ((string) $user->zone_id !== (string) $zone->id) {
             return redirect()->back()->with('error', 'Tienes que estar en la zona para rendirla.');
         }
+        // RENDIR LA ÚLTIMA ZONA = auto-eliminar al equipo → requiere cónclave
         if (Zone::where('team_id', $user->team_id)->count() <= 1) {
-            return redirect()->back()->with('error', 'No puedes rendir tu última zona: tu equipo quedaría eliminado.');
+            $pending = \App\Models\Proposal::where('team_id', $user->team_id)->where('status', 'pending')->first();
+            if ($pending) {
+                return redirect()->route('zones.index')->with('warning', 'Ya hay una propuesta de rendición en marcha; tu equipo debe votarla.');
+            }
+            $proposal = \App\Models\Proposal::create([
+                'team_id'     => $user->team_id,
+                'zone_id'     => $zone->id,
+                'proposer_id' => (string) $user->id,
+                'status'      => 'pending',
+                'supporters'  => [(string) $user->id],
+                'rejecters'   => [],
+            ]);
+            // si eres el único del equipo, la propuesta se aprueba al instante
+            $teamCount = \App\Models\User::players()->where('team_id', $user->team_id)->where('joined', true)->count();
+            if ($teamCount <= 1) {
+                $this->gameService->executeSurrenderProposal($proposal);
+                return redirect()->route('zones.index')->with('success', 'Has rendido la última zona. Tu equipo se retira de la guerra.');
+            }
+            return redirect()->route('zones.index')->with('success', 'Has propuesto rendir la última zona. Tus compañeros deben apoyarlo en el cónclave; si no responden, podrás hacerlo solo en unos minutos.');
         }
 
         $defendingTeam = $zone->team_id;

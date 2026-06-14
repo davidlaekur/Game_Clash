@@ -13,7 +13,7 @@
         <div class="panel panel--framed profile-card">
             <img src="{{ asset('images/avatar.png') }}" alt="Avatar" class="profile-card__avatar">
             <h2 class="profile-card__name">{{ $user->name }}</h2>
-            <span class="chip chip--brass">{{ ucfirst($user->role->name) }}</span>
+            <span class="chip chip--brass">{{ ucfirst(optional($user->role)->name ?? 'sin rol') }}</span>
             @php $rank = $user->rank(); $ranks = config('ranks'); $next = $ranks[$rank['level'] + 1] ?? null; @endphp
             <span class="chip chip--rank"><i class="fas {{ $rank['icon'] }}" aria-hidden="true"></i> {{ $rank['name'] }}</span>
 

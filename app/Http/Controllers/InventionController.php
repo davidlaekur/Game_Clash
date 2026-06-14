@@ -23,7 +23,12 @@ class InventionController extends Controller
     public function store(Request $request)
     {
         $user = Auth::user();
-    
+
+        // solo se forja con la partida EN CURSO (ni en inscripción ni terminada)
+        if (!\App\Models\GameState::current()->isActive()) {
+            return redirect()->route('zones.index')->with('error', 'La partida no está en curso (en inscripción o terminada).');
+        }
+
         // validar datos del formulario
         $validated = $request->validate([
             'zone_id' => 'required|exists:zones,_id',
@@ -129,7 +134,7 @@ class InventionController extends Controller
         // calcular puntos/eficiencia AHORA y guardarlos EN LA ACCIÓN (no en sesión),
         // para que cualquiera (segundo plano) pueda finalizar el invento.
         $baseDuration = $inventionType->level * 15;
-        $duration = ($user->role->name === 'invent') ? $baseDuration : $baseDuration * 1.5;
+        $duration = (strtolower(optional($user->role)->name ?? '') === 'inventor') ? $baseDuration : $baseDuration * 1.5;
         $duration *= app(\App\Services\UserService::class)->actionSpeedFactor($user); // ingenio acelera
 
         $pointsAndEfficiency = (new InventionPointsService())->calculatePointsAndEfficiency($inventionType, $materialId);

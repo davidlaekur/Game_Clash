@@ -13,6 +13,8 @@ use App\Models\Material;
 use App\Models\Inventory;
 use App\Models\InventoryMaterial;
 use App\Models\HallOfFame;
+use App\Models\GameState;
+use App\Models\Proposal;
 
 use App\Services\UserService;
 
@@ -78,7 +80,9 @@ class GameService
 
         // factor de azar por condiciones (lluvia, enfermedades...): varía por consulta
         $defenseFactor = rand(70, 130) / 100;
-        $totalDefense = round($baseDefense + ($playerDefense + $teamDefense + $bonusTimeDefense) * $defenseFactor);
+        // LIDERAZGO: un Estratega entre los defensores refuerza a la tropa (+10%)
+        $defLeadership = $defenders->contains(fn($p) => strtolower(optional($p->role)->name ?? '') === 'strategist') ? 1.1 : 1.0;
+        $totalDefense = round($baseDefense + (($playerDefense + $teamDefense) * $defLeadership + $bonusTimeDefense) * $defenseFactor);
 
         // === ATAQUE (posicional) ===
         // El ataque lo lanza un jugador desde una zona propia adyacente; la fuerza
@@ -95,6 +99,7 @@ class GameService
         $attackBase = 0;
         $initiativeBonus = 0;
         $luck = 0;
+        $attackLeadership = 1.0; // +10% si hay un Estratega en la guarnición atacante
         if ($attackAction) {
             $initiator = User::find($attackAction->user_id);
             $origin = $initiator ? $initiator->zone : null;
@@ -109,13 +114,16 @@ class GameService
                     $attackBase += $s['ataque'] ?? 0;
                     $initiativeBonus += $s['velocidad'] ?? 0;
                     $luck += $s['suerte'] ?? 0;
+                    if (strtolower(optional($g->role)->name ?? '') === 'strategist') {
+                        $attackLeadership = 1.1;
+                    }
                 }
             }
         }
 
         $luckBonus = min(0.30, $luck * 0.01); // suerte mejora la tirada, máx +0.30
         $attackFactor = rand(70, 130) / 100 + $luckBonus;
-        $attackPoints = round(($attackBase + $initiativeBonus) * $attackFactor);
+        $attackPoints = round(($attackBase + $initiativeBonus) * $attackLeadership * $attackFactor);
 
         return [
             'totalDefense' => $totalDefense,
@@ -165,6 +173,42 @@ class GameService
         }
 
         return null;
+    }
+
+    /** Mínimo de jugadores apuntados POR equipo para que arranque la partida. */
+    const MIN_PLAYERS_PER_TEAM = 1;
+
+    /**
+     * Sincroniza la fase de la partida (perezoso, en cada carga del mapa):
+     *  - lobby  -> active  cuando hay suficientes jugadores apuntados por bando.
+     *  - active -> ended   cuando un equipo cumple la condición de victoria.
+     */
+    public function syncPhase(): GameState
+    {
+        $state = GameState::current();
+        if ($state->isLobby() && $this->enoughPlayersToStart()) {
+            $state->setPhase('active');
+        } elseif ($state->isActive() && ($victory = $this->checkVictoryCondition())) {
+            $state->endWith($victory);
+        }
+        return $state;
+    }
+
+    /** ¿Hay ya el mínimo de jugadores apuntados en cada equipo para empezar? */
+    public function enoughPlayersToStart(): bool
+    {
+        $teams = Team::all();
+        if ($teams->count() < 2) {
+            return false;
+        }
+        $min = GameState::current()->minPerTeam();
+        foreach ($teams as $t) {
+            $count = User::players()->where('joined', true)->where('team_id', $t->id)->count();
+            if ($count < $min) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public function resolveAttack(Zone $zone, ?array $combatData = null)
@@ -456,18 +500,58 @@ class GameService
      */
     public function archiveAndReset(string $victoryMessage): void
     {
-        HallOfFame::create([
-            'winner'   => $victoryMessage,
-            'podium'   => $this->currentPodium(3),
-            'ended_at' => now(),
-        ]);
+        // solo entra al Salón de la Fama si hubo gesta real (alguien con gloria)
+        $podium = $this->currentPodium(3);
+        if (!empty($podium)) {
+            HallOfFame::create([
+                'winner'   => $victoryMessage,
+                'podium'   => $podium,
+                'ended_at' => now(),
+            ]);
+        }
         $this->resetGame();
+
+        // abre de nuevo la sala de espera para la siguiente partida
+        $state = GameState::current();
+        $state->phase = 'lobby';
+        $state->result_message = null;
+        $state->started_at = null;
+        $state->save();
+    }
+
+    /**
+     * Ejecuta una propuesta de rendición de la última zona (cónclave aprobado o
+     * unilateral): la zona pasa a neutral, la guarnición se retira. El equipo
+     * queda sin zonas (la condición de victoria del rival se evaluará después).
+     */
+    public function executeSurrenderProposal($proposal): bool
+    {
+        $zone = Zone::find($proposal->zone_id);
+        $teamId = $proposal->team_id;
+        if (!$zone || (string) $zone->team_id !== (string) $teamId) {
+            $proposal->status = 'cancelled';
+            $proposal->save();
+            return false;
+        }
+
+        $zone->team_id = null;
+        $zone->regen_boost = 1;
+        $zone->mine_ready_at = null;
+        $zone->claim_locked_until = now()->addMinutes(5);
+        $zone->save();
+
+        $this->retreatFromZone($zone, $teamId, false);
+
+        $proposal->status = 'executed';
+        $proposal->save();
+        return true;
     }
 
     /** Top N jugadores por Gloria (para el podio y el Salón de la Fama). */
     public function currentPodium(int $top = 3): array
     {
         return User::players()->with('team')->get()
+            ->filter(fn($u) => $u->glory() > 0) // solo destacados (sin relleno a 0)
             ->sortByDesc(fn($u) => $u->glory())
             ->take($top)
             ->map(fn($u) => [
@@ -511,6 +595,9 @@ class GameService
             $user->rank_score = 0;
             $user->wounded_until = null;
             $user->zone_id = null;
+            $user->joined = false;
+            $user->role_id = null; // facción y rol se reeligen al unirse a la nueva partida
+            $user->team_id = null;
             $user->save();
             if ($user->inventory) {
                 $user->inventory->inventions()->delete();

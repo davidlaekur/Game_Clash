@@ -199,13 +199,62 @@ class PlayerController extends Controller
     /**
      * Explorar una zona.
      */
+    /**
+     * Unirse a la partida (sala de espera o partida en curso): marca al jugador
+     * como participante y, si está fuera del mapa, lo coloca en una zona neutral.
+     */
+    public function join(Request $request)
+    {
+        $user = Auth::user();
+        $state = \App\Models\GameState::current();
+
+        if ($state->isEnded()) {
+            return back()->with('error', 'La partida ha terminado. Espera a que el admin abra una nueva.');
+        }
+        if ($user->joined) {
+            return redirect()->route('zones.index')->with('success', 'Ya estabas dentro de la partida.');
+        }
+
+        $request->validate([
+            'team_id' => 'required|exists:teams,id',
+            'role_id' => 'required|exists:roles,id',
+        ]);
+        $role = \App\Models\Role::find($request->role_id);
+        if (!$role || $role->name === 'Admin') {
+            return back()->with('error', 'Rol no válido.');
+        }
+
+        // el rol debe estar libre en la FACCIÓN elegida entre los ya apuntados
+        $taken = User::players()
+            ->where('team_id', $request->team_id)
+            ->where('joined', true)
+            ->where('role_id', $role->id)
+            ->exists();
+        if ($taken) {
+            return back()->with('error', 'Ese rol ya está ocupado en esa facción. Elige otro.');
+        }
+
+        $user->team_id = $request->team_id;
+        $user->role_id = $role->id;
+        $user->joined = true;
+        if (!$user->zone_id) {
+            $neutral = Zone::whereNull('team_id')->get();
+            if ($neutral->isNotEmpty()) {
+                $user->zone_id = $neutral->random()->id;
+            }
+        }
+        $user->save();
+
+        return redirect()->route('zones.index')->with('success', "¡Te has unido como {$role->name}! Espera a que empiece la partida.");
+    }
+
     public function explore(Request $request, Zone $zone)
     {
         $user = Auth::user();
 
-        // partida terminada: nada de conquistar hasta que el admin reinicie
-        if ($this->gameService->checkVictoryCondition()) {
-            return redirect()->route('zones.index')->with('error', 'La partida ha terminado. Espera a que el admin inicie una nueva.');
+        // solo se conquista con la partida EN CURSO (ni en inscripción ni terminada)
+        if (!\App\Models\GameState::current()->isActive()) {
+            return redirect()->route('zones.index')->with('error', 'La partida no está en curso (en inscripción o terminada).');
         }
 
         // Validar que el usuario está en la zona
@@ -238,7 +287,7 @@ class PlayerController extends Controller
         $duration = $baseTime * $landscapeModifier;
 
         //  penaliza  si el usuario no es un Explorador
-        if ($user->role->name !== 'explorer') {
+        if (strtolower(optional($user->role)->name ?? '') !== 'explorer') {
             $duration *= 1.5; // Penalización del 50%
         }
         $duration *= $this->userService->actionSpeedFactor($user); // el ingenio acelera
@@ -312,6 +361,11 @@ class PlayerController extends Controller
     {
         $user = Auth::user();
 
+        // solo se recolecta con la partida EN CURSO
+        if (!\App\Models\GameState::current()->isActive()) {
+            return redirect()->route('zones.index')->with('error', 'La partida no está en curso (en inscripción o terminada).');
+        }
+
         // Validar que el jugador está en la zona
         if ($user->zone_id !== $zone->id) {
             return back()->with('error', 'Debes estar en esta zona para recolectar materiales.');
@@ -358,9 +412,9 @@ class PlayerController extends Controller
     {
         $user = auth()->user();
 
-        // partida terminada: no se puede seguir atacando hasta el reinicio del admin
-        if ($this->gameService->checkVictoryCondition()) {
-            return redirect()->route('zones.index')->with('error', 'La partida ha terminado. Espera a que el admin inicie una nueva.');
+        // solo se ataca con la partida EN CURSO
+        if (!\App\Models\GameState::current()->isActive()) {
+            return redirect()->route('zones.index')->with('error', 'La partida no está en curso (en inscripción o terminada).');
         }
 
         $originZone = $user->zone;
@@ -447,7 +501,8 @@ class PlayerController extends Controller
      */
     public function ranking()
     {
-        $players = User::players()->with('team')->get()
+        // solo los jugadores de la partida en curso (los que se han unido), por gloria
+        $players = User::players()->where('joined', true)->with('team')->get()
             ->sortByDesc(fn($u) => $u->glory())
             ->take(15)->values();
 

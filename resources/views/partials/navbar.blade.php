@@ -13,6 +13,9 @@
         <li><a href="{{ route('teams.index') }}" class="{{ request()->routeIs('teams.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-shield-alt" aria-hidden="true"></i> <span class="epic-menu__txt">Equipo</span></a></li>
         <li><a href="{{ route('actions.index') }}" class="{{ request()->routeIs('actions.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-hourglass-half" aria-hidden="true"></i> <span class="epic-menu__txt">Acciones</span></a></li>
         <li><a href="{{ route('ranking') }}" class="{{ request()->routeIs('ranking') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-trophy" aria-hidden="true"></i> <span class="epic-menu__txt">Ranking</span></a></li>
+        @if (optional($u->role)->name === 'Admin')
+            <li><a href="{{ route('admin.panel') }}" class="{{ request()->routeIs('admin.*') ? 'is-active' : '' }}"><i class="epic-menu__ico fas fa-gavel" aria-hidden="true"></i> <span class="epic-menu__txt">Admin</span></a></li>
+        @endif
     </ul>
 
     {{-- HUD del jugador --}}
@@ -20,7 +23,7 @@
         <div class="epic-hud__player">
             <span class="epic-hud__name">{{ $u->name }}</span>
             <span class="epic-hud__meta">
-                <span class="epic-hud__role">{{ ucfirst($u->role->name) }}</span>
+                <span class="epic-hud__role">{{ optional($u->role)->name ? ucfirst($u->role->name) : 'Sin rol' }}</span>
                 @php
                     $teamName = $u->team->name ?? null;
                     $teamMod = $teamName ? (str_contains(strtolower($teamName), 'laraveland') ? 'laraveland' : (str_contains(strtolower($teamName), 'itaca') ? 'itaca' : 'none')) : 'none';

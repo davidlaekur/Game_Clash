@@ -56,7 +56,7 @@
                 <div class="panel member-card">
                     <img src="{{ asset('images/avatar.png') }}" alt="Avatar" class="member-card__avatar">
                     <h3 class="member-card__name">{{ $member->name }}</h3>
-                    <span class="chip chip--brass">{{ ucfirst($member->role->name) }}</span>
+                    <span class="chip chip--brass">{{ ucfirst(optional($member->role)->name ?? 'sin rol') }}</span>
                     <div class="member-card__points">
                         <span>Puntos <b>{{ $member->totalPoints }}</b></span>
                         <span>Capacidad <b>{{ $member->totalCapacity }}</b></span>

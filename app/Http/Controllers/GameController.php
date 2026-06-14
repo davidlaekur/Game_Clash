@@ -68,24 +68,70 @@ class GameController extends Controller
         return redirect()->route('game.status')->with('success', 'El juego ha sido reiniciado.');
     }
 
-    /**
-     * Iniciar una NUEVA partida (solo admin): archiva la terminada en el Salón de
-     * la Fama (ganador + podio) y reinicia todo. Solo si la partida ya tiene ganador.
-     */
-    public function newGame()
+    /** Solo admin: corta aquí si no lo es. */
+    private function ensureAdmin()
     {
         $user = auth()->user();
         if (!$user || optional($user->role)->name !== 'Admin') {
-            return redirect()->route('zones.index')->with('error', 'Solo el admin puede iniciar una nueva partida.');
+            return redirect()->route('zones.index')->with('error', 'Solo el admin puede gestionar la partida.');
+        }
+        return null;
+    }
+
+    /**
+     * Empezar YA la partida (override del admin): pasa de inscripción a en curso
+     * aunque no se haya llegado al mínimo de jugadores. Normalmente arranca sola.
+     */
+    public function startGame()
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+        $state = \App\Models\GameState::current();
+        if (!$state->isLobby()) {
+            return redirect()->route('zones.index')->with('error', 'La partida no está en fase de inscripción.');
+        }
+        $state->setPhase('active');
+        return redirect()->route('zones.index')->with('success', '¡Partida en marcha! Que empiece la conquista.');
+    }
+
+    /**
+     * Terminar la partida a mano (admin): para partidas muertas, jugadores
+     * inactivos, etc. Pasa a fase terminada y muestra el podio con lo que haya.
+     */
+    public function forceEnd()
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+        $state = \App\Models\GameState::current();
+        if (!$state->isActive()) {
+            return redirect()->route('zones.index')->with('error', 'No hay ninguna partida en curso que terminar.');
+        }
+        // si ya hay un ganador real, respétalo; si no, fin administrativo
+        $victory = $this->gameService->checkVictoryCondition()
+            ?: 'La partida ha sido finalizada por el administrador.';
+        $state->endWith($victory);
+        return redirect()->route('zones.index')->with('success', 'Partida finalizada. Revisa el podio.');
+    }
+
+    /**
+     * Abrir una NUEVA partida (admin) una vez terminada: archiva el podio en el
+     * Salón de la Fama y reinicia todo, dejando la sala de espera abierta.
+     */
+    public function newGame()
+    {
+        if ($redirect = $this->ensureAdmin()) {
+            return $redirect;
+        }
+        $state = \App\Models\GameState::current();
+        if (!$state->isEnded()) {
+            return redirect()->route('zones.index')->with('error', 'Solo puedes abrir una nueva partida cuando la actual ha terminado.');
         }
 
-        $victory = $this->gameService->checkVictoryCondition();
-        if (!$victory) {
-            return redirect()->route('zones.index')->with('error', 'La partida sigue en curso; aún no hay ganador.');
-        }
+        $message = $state->result_message ?: ($this->gameService->checkVictoryCondition() ?: 'Partida finalizada.');
+        $this->gameService->archiveAndReset($message);
 
-        $this->gameService->archiveAndReset($victory);
-
-        return redirect()->route('zones.index')->with('success', 'Nueva partida iniciada. ¡Que empiece la conquista!');
+        return redirect()->route('zones.index')->with('success', 'Nueva partida abierta: ¡que se apunten los jugadores!');
     }
 }

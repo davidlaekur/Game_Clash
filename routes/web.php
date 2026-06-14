@@ -13,6 +13,8 @@ use App\Http\Controllers\CommunicationController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdventureController;
+use App\Http\Controllers\ProposalController;
+use App\Http\Controllers\AdminController;
 
 
 
@@ -55,7 +57,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('zones/{zone}/rendir', [ZoneController::class, 'surrender'])->name('zones.surrender');
     Route::get('ranking', [PlayerController::class, 'ranking'])->name('ranking');
     Route::get('map-state', [ZoneController::class, 'state'])->name('map.state'); // refresco en vivo del mapa
-    Route::post('game/new', [GameController::class, 'newGame'])->name('game.new'); // nueva partida (solo admin)
+    Route::post('game/new', [GameController::class, 'newGame'])->name('game.new');     // abrir nueva partida (admin)
+    Route::post('game/start', [GameController::class, 'startGame'])->name('game.start'); // empezar ya (admin override)
+    Route::post('game/end', [GameController::class, 'forceEnd'])->name('game.end');     // terminar partida (admin)
+    Route::post('players/join', [PlayerController::class, 'join'])->name('players.join'); // unirse a la partida
+    Route::post('proposals/{proposal}/vote', [ProposalController::class, 'vote'])->name('proposals.vote');       // cónclave: apoyar/rechazar
+    Route::post('proposals/{proposal}/execute', [ProposalController::class, 'execute'])->name('proposals.execute'); // cónclave: ejecutar unilateral
+
+    // Panel de mando del admin (árbitro)
+    Route::get('admin', [AdminController::class, 'index'])->name('admin.panel');
+    Route::post('admin/settings', [AdminController::class, 'settings'])->name('admin.settings');
+    Route::post('admin/event', [AdminController::class, 'forceEvent'])->name('admin.event');
+    Route::post('admin/zone', [AdminController::class, 'reassignZone'])->name('admin.zone');
+    Route::post('admin/merit', [AdminController::class, 'adjustMerit'])->name('admin.merit');
+    Route::post('admin/heal', [AdminController::class, 'healPlayer'])->name('admin.heal');
+    Route::post('admin/expel', [AdminController::class, 'expelPlayer'])->name('admin.expel');
 
 
     Route::get('teams/transfer', [TeamController::class, 'transfer'])->name('teams.transfer');

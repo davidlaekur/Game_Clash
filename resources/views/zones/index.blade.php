@@ -66,7 +66,51 @@
 
 <div class="warmap-page">
 
-    @if (!empty($victory))
+    @if (($phase ?? '') === 'active' && optional(auth()->user()->role)->name === 'Admin')
+        <div class="admin-bar">
+            <form action="{{ route('game.end') }}" method="POST" onsubmit="return confirm('¿Terminar la partida ahora? Se mostrará el podio con la situación actual.');">
+                @csrf
+                <button type="submit" class="btn-ghost"><i class="fas fa-flag" aria-hidden="true"></i> Terminar partida (admin)</button>
+            </form>
+        </div>
+    @endif
+
+    @if (!empty($teamProposal))
+        @php
+            $uid = (string) auth()->id();
+            $supporters = collect($teamProposal->supporters ?? [])->map(fn($i) => (string) $i);
+            $rejecters = collect($teamProposal->rejecters ?? [])->map(fn($i) => (string) $i);
+            $iVoted = $supporters->contains($uid) || $rejecters->contains($uid);
+            $iAmProposer = (string) $teamProposal->proposer_id === $uid;
+        @endphp
+        <div class="conclave-banner">
+            <div class="conclave-banner__head"><i class="fas fa-handshake" aria-hidden="true"></i> Cónclave: se propone <b>rendir la última zona</b> · tu equipo quedaría eliminado.</div>
+            <p class="conclave-banner__info">{{ $supporters->count() }} apoyo(s) hasta ahora.</p>
+            @if (!$iVoted)
+                <div class="conclave-banner__actions">
+                    <form action="{{ route('proposals.vote', $teamProposal->id) }}" method="POST">
+                        @csrf <input type="hidden" name="vote" value="support">
+                        <button type="submit" class="btn-epic"><i class="fas fa-check" aria-hidden="true"></i> Apoyar</button>
+                    </form>
+                    <form action="{{ route('proposals.vote', $teamProposal->id) }}" method="POST">
+                        @csrf <input type="hidden" name="vote" value="reject">
+                        <button type="submit" class="btn-ghost"><i class="fas fa-times" aria-hidden="true"></i> Rechazar</button>
+                    </form>
+                </div>
+            @else
+                <p class="conclave-banner__voted"><i class="fas fa-check-circle" aria-hidden="true"></i> Ya has votado.</p>
+            @endif
+            @if ($iAmProposer && $teamProposal->canExecuteUnilaterally())
+                <form action="{{ route('proposals.execute', $teamProposal->id) }}" method="POST"
+                      onsubmit="return confirm('¿Ejecutar la rendición de la última zona? Tu equipo se retirará de la guerra.');">
+                    @csrf
+                    <button type="submit" class="btn-epic"><i class="fas fa-flag" aria-hidden="true"></i> Ejecutar (nadie respondió)</button>
+                </form>
+            @endif
+        </div>
+    @endif
+
+    @if (($phase ?? '') === 'ended')
         <div class="victory-podium">
             <div class="victory-podium__head">
                 <i class="fas fa-crown" aria-hidden="true"></i>
@@ -84,7 +128,7 @@
                     @endforeach
                 </ol>
             @endif
-            @if (auth()->user()->role->name === 'Admin')
+            @if (optional(auth()->user()->role)->name === 'Admin')
                 <form action="{{ route('game.new') }}" method="POST" class="victory-podium__new"
                       onsubmit="return confirm('¿Iniciar una nueva partida? Se archivará el podio en el Salón de la Fama y se reiniciará todo (zonas, inventarios, méritos y gloria).');">
                     @csrf
@@ -112,7 +156,7 @@
                     </button>
                 </div>
                 <p class="side-head__sub">El Reino de Laraveland · {{ $zones->count() }} territorios en disputa</p>
-                @if(auth()->user()->role->name !== 'Admin')
+                @if(optional(auth()->user()->role)->name !== 'Admin')
                     @php $advRank = auth()->user()->rankLevel(); $advMerit = (int) (auth()->user()->merit ?? 0); @endphp
                     @if (($hasAdventure ?? false) || ($advRank >= 2 && $advMerit >= 100))
                         <a href="{{ route('adventure.intro') }}" class="btn-epic side-head__cta btn-spaceship" id="adventure-btn">

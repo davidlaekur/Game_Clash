@@ -33,6 +33,7 @@ class User extends Authenticatable implements JWTSubject
         'team_id',    // Relación con Team
         'zone_id',    // Relación con Zone
         'wounded_until', // estado "Herido" temporal tras perder una batalla defendiendo
+        'joined',     // se ha apuntado a la partida en curso (sala de espera)
     ];
 
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Zone;
+use App\Models\GameState;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -13,28 +14,48 @@ use Illuminate\Support\Facades\Cache;
  */
 class WorldEventService
 {
-    private const SPAWN_INTERVAL = 180; // cada 3 min, intento de evento extra (variedad)
-    private const MIN_ACTIVE = 2;       // siempre al menos estos eventos vivos
-    private const MAX_ACTIVE = 5;       // tope de eventos simultáneos
+    // intensidad de eventos ajustable por el admin (GameState.event_level)
+    private const LEVELS = [
+        'off'    => ['min' => 0, 'max' => 0, 'interval' => 999999],
+        'low'    => ['min' => 0, 'max' => 2, 'interval' => 360],
+        'normal' => ['min' => 2, 'max' => 5, 'interval' => 180],
+        'high'   => ['min' => 3, 'max' => 8, 'interval' => 90],
+    ];
 
     public function tick(): void
     {
         $this->expireOld();
 
+        $cfg = self::LEVELS[GameState::current()->eventLevel()] ?? self::LEVELS['normal'];
+
         $active = Zone::whereNotNull('event_type')->count();
 
         // mantener un mínimo de eventos vivos: el mundo siempre se siente activo
-        while ($active < self::MIN_ACTIVE && $this->spawn()) {
+        while ($active < $cfg['min'] && $this->spawn()) {
             $active++;
         }
 
         // spawn periódico extra para variedad, hasta el máximo
         $last = (int) Cache::get('world_event_last', 0);
-        if ($active < self::MAX_ACTIVE && now()->timestamp - $last >= self::SPAWN_INTERVAL) {
+        if ($active < $cfg['max'] && now()->timestamp - $last >= $cfg['interval']) {
             if ($this->spawn()) {
                 Cache::put('world_event_last', now()->timestamp, 86400);
             }
         }
+    }
+
+    /** El admin fuerza un evento concreto en una zona (tormenta/bonanza/plaga). */
+    public function force(Zone $zone, string $type): bool
+    {
+        $meta = config('world_events')[$type] ?? null;
+        if (!$meta) {
+            return false;
+        }
+        $zone->event_type = $type;
+        $zone->event_ends_at = now()->addSeconds($meta['duration']);
+        $zone->event_magnitude = $type === 'tormenta' ? (int) round($zone->defense * 0.35) : 0;
+        $zone->save();
+        return true;
     }
 
     private function expireOld(): void

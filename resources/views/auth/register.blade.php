@@ -41,30 +41,7 @@
                 </div>
             </div>
 
-            <div class="auth-grid">
-                <div class="auth-field">
-                    <label for="team_id">Selecciona un Equipo</label>
-                    <select name="team_id" id="team_id" required>
-                        @foreach($teams as $team)
-                            @if($team->users->count() < 10)
-                                <option value="{{ $team->id }}" {{ old('team_id') == $team->id ? 'selected' : '' }}>
-                                    {{ $team->name }} ({{ $team->users->count() }}/10 jugadores)
-                                </option>
-                            @endif
-                        @endforeach
-                    </select>
-                    @error('team_id')<span class="auth-error">{{ $message }}</span>@enderror
-                </div>
-                <div class="auth-field">
-                    <label for="role_id">Selecciona tu Rol</label>
-                    <select name="role_id" id="role_id" required>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('role_id')<span class="auth-error">{{ $message }}</span>@enderror
-                </div>
-            </div>
+            <p class="auth-hint auth-hint--center">Elegirás tu facción y tu rol al unirte a la partida.</p>
 
             <button type="submit" class="btn-epic auth-submit"><i class="fas fa-shield-alt" aria-hidden="true"></i> Registrarse</button>
         </form>

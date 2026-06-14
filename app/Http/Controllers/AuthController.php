@@ -45,59 +45,34 @@ class AuthController extends Controller
     }
 
     public function showRegisterForm(Request $request)
-
     {
+        // el registro solo elige facción; el rol se elige al unirse a la partida
         $teams = Team::with('users')->get();
-        $roles = Role::all(); // Obtener todos los roles desde la tabla `rol`
-
-        if ($request->has('team_id')) {
-            $team = Team::find($request->team_id);
-
-            // buscamos en la bbdd los roles ocupados en el equipo seleccionado
-            $rolesInTeam = $team->users->pluck('role_id')->toArray();
-
-            // Filtrarlos roles ya ocupados 
-            $roles = $roles->whereNotIn('id', $rolesInTeam);
-        }
-
-        return view('auth.register', compact('teams', 'roles'));
+        return view('auth.register', compact('teams'));
     }
 
 
     public function register(Request $request)
     {
+        // El registro solo crea la cuenta. La FACCIÓN y el ROL se eligen al unirse
+        // a la partida (sala de espera), para poder equilibrar bandos cada partida.
         $request->validate([
             'name' => 'required|string|min:2|max:9',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:4|confirmed',
-            'team_id' => 'required|exists:teams,id',
-            'role_id' => 'required|exists:roles,id', // Validar con la tabla roles
         ]);
 
-        $team = Team::findOrFail($request->team_id); // Obtener el equipo seleccionado
-        $role = Role::findOrFail($request->role_id);
-
-        // restringir admin
-        if ($role->name === 'Admin') {
-            return redirect()->back()->withInput()->withErrors(['role_id' => 'No puedes seleccionar este rol. Esta reservado para el administrador']);
-        }
-    
-        if ($team->users->where('role_id', $request->role_id)->count() > 0) {
-            return redirect()->back()->withInput()->withErrors(['role_id' => 'Este rol ya está ocupado en este equipo.']);
-        }
-
-        $role = Role::findOrFail($request->role_id);
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'points' => 0,
-            'role_id' => $role->id,
-            'team_id' => $request->team_id,
-            'zone_id' => $team->zones->first()->id ?? null,
+            'role_id' => null,  // facción y rol se eligen al unirse
+            'team_id' => null,
+            'zone_id' => null,
+            'joined' => false,
         ]);
 
-        // Redirigir al login después del registro
-        return redirect()->route('login')->with('success', 'Registro completado. Por favor, inicia sesión.');
+        return redirect()->route('login')->with('success', 'Registro completado. Elige tu facción y tu rol al unirte a la partida.');
     }
 }
